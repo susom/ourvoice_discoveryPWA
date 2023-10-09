@@ -1,0 +1,158 @@
+.SlideModal--open {
+    width: 90%;
+    max-width:90%;
+}
+
+.close_slider {
+    position:absolute;
+    top:10px;
+    right:10px;
+    cursor:pointer;
+}
+
+.slideout {
+    padding:10px;
+}
+
+.slideout hgroup{
+    font-size:100%;
+    color:#333;
+    padding-bottom:10px;
+    border-bottom:1px solid #ccc;
+    margin-bottom:20px;
+}
+
+.slideout h2 {
+    font-size:120%;
+}
+
+.slideout h4 {
+    font-size:92%;
+}
+
+.slideout dl {
+    margin:0 0 30px; padding:0;
+}
+
+.slideout dt {
+    display:inline-block;
+    margin-right:10px;
+    cursor:pointer;
+}
+
+.slideout dt span {
+    display:inline-block;
+    margin-right:0;
+}
+
+.slideout dd {
+    display:inline-block;
+}
+
+img.slide_preview {
+    max-width: 80px;
+    max-height: 80px;
+    border-radius: 3px;
+}
+
+.slideout .icon{
+    margin-right:2px;
+    vertical-align:middle;
+}
+
+.slideout .icon:not(.audio, .tags){
+    text-indent:-5000px;
+}
+
+.slideout .smilies{
+    display:inline-block;
+    width  : 30px;
+    height : 30px;
+    background :  url(../images/icon_smilies.png) bottom left no-repeat;
+    background-size:200%;
+}
+
+.slideout .smilies.up{
+    background-position: top left;
+}
+
+.slideout .smilies.down{
+    background-position: top right;
+}
+
+.slideout .thumbs{
+    display:inline-block;
+    width:30px;
+    height:40px;
+    background: url(../images/icon_thumbs.png) top left no-repeat;
+    background-size:200%;
+}
+
+.slideout .thumbs.down{
+    background-position:top right;
+}
+
+.slideout .audio{
+    display:inline-block;
+    width:30px; height:30px;
+    background:lightblue url(../images/icon_listen_2.png) 50% no-repeat;
+    background-size:80%;
+    border-radius:5px;
+    text-align:center;
+    color:#333;
+    line-height:140%;
+    font-weight:bold;
+    font-style:normal;
+    text-decoration:none;
+    text-indent:-2px;
+    border:none;
+}
+
+.slideout .audio.playing{
+    background:url(../images/icon_stop.png) no-repeat;
+    background-size:contain;
+}
+
+.slideout .keyboard {
+    display:inline-block;
+    width: 34px;
+    border-radius: 5px;
+    height: 30px;
+    background: lightblue url(../images/icon_keyboard.png) 50% no-repeat;
+    background-size: 80%;
+    position: relative;
+}
+
+
+.slideout .tags{
+    white-space: nowrap;
+    position: relative;
+    margin: 0 0 0 10px;
+    displaY: inline-block;
+    height: 26px;
+    border-radius: 0 5px 5px 0;
+    padding: 0 10px 0 10px;
+    background: #ccc;
+    border: 0 solid #C7D2D4;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    color: #999;
+    line-height: 23px;
+    text-decoration: none;
+}
+
+.slideout .tags:before{
+    position:absolute;
+    content:"\25CF";
+    text-shadow: 0 0 1px #333;
+    font-size:11px;
+    line-height:0px;
+    text-indent:12px;
+    left:-14px; top:-1px;
+    width: 1px;
+    height:0px;
+    top:-1px;
+    border-right:15px solid #ccc;
+    border-top:  13px solid transparent;
+    border-bottom:  13px solid transparent;
+}

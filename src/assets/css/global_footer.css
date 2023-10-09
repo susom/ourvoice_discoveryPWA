@@ -1,0 +1,26 @@
+.view_footer .go_home {
+    display: inline-block;
+    margin: 8px 0;
+}
+
+.view_footer .slide_preview{
+    display: inline-block;
+    margin: 4px 0;
+    height: 40px;
+    padding-left: 42px;
+    position: relative;
+    text-decoration:none;
+    line-height: 240%;
+    font-size: 108%;
+    color:#bbb;
+}
+
+.view_footer .icon_mag,
+.view_footer .icon_files{
+    position:absolute;
+    left:0;
+}
+.view_footer .icon_mag{
+    top: 35%;
+    left: 16%;
+}

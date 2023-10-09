@@ -1,0 +1,13 @@
+#splashScreen {
+    position:absolute;
+    top:50%; left:50%; /* position of top left of box */
+    transform:translate(-50%, -50%); /* relative to size wxh of box */
+
+    width: 200px;
+    height:auto;
+
+    background:url("../images/splash_loading_dt.gif") 50% no-repeat;
+    background-size:contain;
+
+    text-indent:-5000px;
+}

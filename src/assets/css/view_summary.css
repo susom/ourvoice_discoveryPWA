@@ -1,0 +1,90 @@
+.summary {
+    /*padding-top:20px;*/
+    /*padding-bottom:50px;*/
+}
+
+.container {
+    text-align:center;
+}
+
+/*finish*/
+.bigpad{
+    padding:10px 0;
+}
+.horizconnect{
+    height:12px;
+    background:#57585A;
+    border-radius:0;
+    margin-bottom:0;
+}
+
+.summary .consentbox{
+    margin-bottom:10px;
+}
+
+.consentbox.nocontent{
+    padding:0;
+    margin-top:0;
+    border:none;
+}
+.consentbox.nocontent:after{
+    bottom: -10px;
+    width: 10px;
+    height: 32px;
+}
+.consentbox.nobor{
+
+}
+
+.btns .consentbox {
+    border:none;
+}
+
+.icon {
+    height:8vh;
+    background:#57585A;
+    position:relative;
+}
+
+.icon.camera{
+    background:#57585A url(../images/icon_camera.png) 50% no-repeat;
+    background-size:25% !important;
+}
+.icon.audiocomment{
+    background:#57585A url(../images/icon_audio_comment.png) 50% no-repeat;
+    background-size:30%;
+}
+.solidbg{
+    background:#57585A;
+    color:#fff;
+}
+
+#walkmap .consentbox{
+    padding:0;
+}
+
+#google_map{
+    min-height:200px;
+    min-width:auto;
+    margin:0;
+}
+
+.summary .btn{
+    display:block;
+    padding: 5px 0;
+    margin: 0 auto 0;
+    width:100%;
+    max-width: 300px;
+    box-shadow: 1px 1px 3px 1px #ccc;
+    border:1px solid transparent;
+    color:#fff;
+    font-size:92%;
+}
+
+.summary .endwalk{
+    background:#96AA3D;
+}
+
+.summary .continuewalk{
+    background:#105881;
+}

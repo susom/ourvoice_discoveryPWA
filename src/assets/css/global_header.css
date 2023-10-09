@@ -1,0 +1,40 @@
+
+
+.view_header .walk_id {
+    display:none;
+}
+
+.view_header.in_session .walk_id{
+    display:block;
+    font-size:88%;
+    padding-bottom:5px;
+}
+
+.view_header .walk_id span {
+    display:none;
+}
+
+.view_header .walk_id span.has_data{
+    display:inline-block;
+}
+
+.view_header .app_title{
+    display:inline-block;
+    background:url("../images/logo.png") left 50% no-repeat;
+    background-size:contain;
+    font-size:120%;
+    padding:0 0 0 30px;
+    margin:10px 0 0;
+    position:relative;
+}
+
+.view_header .online_status{
+    font-size: 77%;
+    position: absolute;
+    top: 16px;
+    right: 10px;
+}
+
+.view_header .online_status svg{
+    vertical-align: bottom;
+}

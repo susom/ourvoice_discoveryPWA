@@ -1,0 +1,36 @@
+.android.pwa_install dl {
+    margin-top:30px;
+    padding:10px 20px;
+    overflow:hidden;
+}
+
+.android.pwa_install dt {
+    float:left;
+    width:50px; 
+    margin-right:10px;
+}
+
+.android.pwa_install dt img {
+    max-width:50px;
+}
+
+.android.pwa_install dd {
+    float:left;
+}
+
+.android.pwa_install h5 {
+    margin:0; 
+}
+
+.android.pwa_install p {
+    margin:0; 
+}
+
+.android.pwa_install .add_to_home{
+    text-align:right;
+    float:none;
+}
+
+.android.pwa_install .add_to_home button{
+    margin-top:15px;
+}
