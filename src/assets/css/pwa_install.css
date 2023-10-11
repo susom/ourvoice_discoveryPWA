@@ -1,0 +1,30 @@
+.pwa_install {
+    max-height:80vh;
+    overflow:scroll;
+}
+.pwa_install p {
+    margin-bottom:25px;
+}
+
+.pwa_install_btn{
+    position:absolute;
+    top:15px; right:15px;
+    text-indent:-5000px;
+    width:24px;
+    height:24px;
+    cursor:pointer;
+    color:#666;
+}
+
+.pwa_install li span {
+    display:block;
+    padding:0;
+    margin:0 0 10px;
+    color:#999;
+    font-size:92%;
+}
+
+.modal_close_x_btn{
+    font-size:140%;
+    cursor:pointer;
+}

@@ -1,0 +1,177 @@
+{
+  "approved_projects": {
+    "en": "The Discovery Tool is only available for use in approved projects."
+  },
+  "are_you_done": {
+    "en": "Are you done?"
+  },
+  "cancel": {
+    "en": "Cancel"
+  },
+  "change_project": {
+    "en": "Change project"
+  },
+  "chose_one": {
+    "en": "Choose one or both"
+  },
+  "clear_device": {
+    "en": "Reset Databases? All Discovery Tool data saved on this device will be deleted and reset. Click 'Continue' to proceed."
+  },
+  "confirm": {
+    "en": "Confirm"
+  },
+  "consent_greet": {
+    "en": "Welcome!"
+  },
+  "consent_info_1": {
+    "en": "Use the Discovery Tool to take photos and explain things in your community that affect healthy living. The Discovery Tool will make a map of your route."
+  },
+  "consent_info_2": {
+    "en": "The information you collect will be stored securely at Stanford University and will only be used for research purposes. It may be published or presented, but your identity will never be shared."
+  },
+  "copyright": {
+    "en": "© Stanford University 2023"
+  },
+  "date": {
+    "en": "Date"
+  },
+  "delete": {
+    "en": "Delete"
+  },
+  "delete_all_attached": {
+    "en": "This will delete the photo and any attached information."
+  },
+  "delete_this_photo": {
+    "en": "Delete this photo?"
+  },
+  "discovery_tool": {
+    "en": "Discovery Tool"
+  },
+  "done_walk": {
+    "en": "Done with my walk"
+  },
+  "finish_info_1": {
+    "en": "From home screen, connect to wifi to upload data."
+  },
+  "finish_title": {
+    "en": "Great!"
+  },
+  "good_or_bad": {
+    "en": "Is this good or bad for the community?"
+  },
+  "instructions_upload": {
+    "en" : "Data automatically uploaded when network connection is stable."
+  },
+  "language": {
+    "en": "Language"
+  },
+  "made_comments": {
+    "en": "You made this many comments"
+  },
+  "more_info": {
+    "en": "For more information please visit http://ourvoice.stanford.edu"
+  },
+  "no_continue": {
+    "en": "No, I want to continue"
+  },
+  "password": {
+    "en": "Password"
+  },
+  "project": {
+    "en": "Project"
+  },
+  "project_id": {
+    "en": "Project ID"
+  },
+  "project_tags": {
+    "en": "What is this photo about?"
+  },
+  "return_home": {
+    "en": "Yes, Return to home screen"
+  },
+  "review_photos": {
+    "en": "Review photos"
+  },
+  "saftey_tips": {
+    "en": "Safety tips"
+  },
+  "saftey_tips_1": {
+    "en": "Walk with another person, if possible"
+  },
+  "saftey_tips_2": {
+    "en": "Pay attention and avoid dangerous situations"
+  },
+  "saftey_tips_3": {
+    "en": "Do not take photos of people's faces"
+  },
+  "saftey_tips_4": {
+    "en": "Ask for help if you need it"
+  },
+  "save": {
+    "en": "Save"
+  },
+  "setup_project": {
+    "en": "Setup project on this device"
+  },
+  "start": {
+    "en": "Start"
+  },
+  "take_another": {
+    "en": "Take another photo"
+  },
+  "take_photo": {
+    "en": "Take a photo"
+  },
+  "thanks_interest": {
+    "en": "Thank you for your interest in the Discovery Tool!"
+  },
+  "took_photos": {
+    "en": "You took this many photos"
+  },
+  "understand_agree": {
+    "en": "I understand and agree"
+  },
+  "upload_data": {
+    "en": "Upload data"
+  },
+  "upload_progress": {
+    "en": "Upload progress"
+  },
+  "upload_status": {
+    "en": "Status"
+  },
+  "uploading_data": {
+    "en": "Uploading data"
+  },
+  "view_upload": {
+    "en": "View/upload data"
+  },
+  "walk_id": {
+    "en": "Walk ID"
+  },
+  "why_this_photo": {
+    "en": "Why did you take this photo?"
+  },
+  "yes_done": {
+    "en": "Yes, I am done"
+  },
+  "your_route": {
+    "en": "Here is Your route"
+  },
+  "youre_recording": {
+    "en": "You are recording..."
+  },
+
+  "online" : { "en" :  "Online" },
+  "offline" : { "en" :  "Offline" },
+  "no_tags" : { "en" :  "No Tags Currently Available" },
+  "no_edit" : { "en" :  "Changes to this Walk/Photo can no longer be saved" },
+  "no_photos_yet" : {"en" :  "No photos in current walk yet"},
+  "walk_summary" : {"en" :  "Walk Summary"},
+  "data_uploaded" : {"en" :  "Complete" },
+  "data_pending" : {"en" :  "Pending" },
+  "data_in_progress" : {"en" :  "In Progress" },
+  "data_error" : {"en" :  "Failed" },
+  "delete_all_data" : {"en" :  "Delete All Stored Data" }
+}
+

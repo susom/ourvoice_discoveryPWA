@@ -1,0 +1,293 @@
+∂/*SAVE THIS WITH THE REPO,
+BUT UPDATES MUST BE uploaded as an attachment to couchdb disc_projects -> all_projects
+as index.css  (it overwrites automaticaly)
+*/
+* {
+    -webkit-tap-highlight-color : rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+    -webkit-transition          : all .3s;
+    transition                  : all .3s;
+}
+
+html {
+    width  : 100%;
+    height : 100%;
+}
+
+body {
+    -webkit-touch-callout    : none;     /* prevent callout to copy image, etc when tap to hold */
+    -webkit-text-size-adjust : none;  /* prevent webkit from resizing text to fit */
+    -webkit-user-select      : none;       /* prevent copy paste, to allow, change "none" to "text" */
+    -webkit-font-smoothing   : antialiased;
+    /*text-shadow: rgba(0,0,0,.01) 0 0 1px;*/
+
+    font-family : "HelveticaNeue-Light", "HelveticaNeue", Helvetica, Arial, sans-serif;
+    width       : 100%;
+    height      : 100%;
+    margin      : 0px;
+    padding     : 0px;
+    background  : #fff;
+    font-size   : 100%;
+    color       : #333;
+}
+
+#main { 
+    position:relative;
+    min-width  : 100%;
+    min-height : 100%;
+    height     : 100%;
+    overflow-x : hidden;
+}
+
+/*HEADER AREA AT TOP*/
+header {
+    display     : block;
+    position    : relative;
+    height      : 100%;
+    background  : #fff; /*#475464;*/
+    overflow    : hidden;
+    padding-top : 100px;
+}
+.failed header:after{
+    display:none;
+}
+.title {
+    text-align      : center;
+}
+.logo {
+    background      : url(../img/logo.png) no-repeat;
+    background-size : contain;
+    display         : block;
+    vertical-align  : middle;
+    width           : 128px;
+    height          : 128px;
+    margin          : 0 auto 10px;
+}
+.title h1 {
+    color           : #333;
+    margin          : 20px 0 0;
+    padding         : 0;
+    font-weight     : bold;
+    font-size       : 170%;
+    line-height     : 120%;
+}
+
+/*CANT REFRENCE IMAGES WHEN CALLED FROM DYNAMIC CSS?*/
+header:after {
+    background      : url(../img/loading.gif) no-repeat;
+}
+
+#list_data tbody td i{
+    background:url(../img/icon_thumbs.png) top right no-repeat;
+}
+
+#datastatus i {
+    background:url(../img/icon_thumbs.png) top right no-repeat;
+}
+
+.walk_actions .endwalk {
+    background      : url(../img/icon_stop.png) 50% 50% no-repeat;
+}
+
+.mi_slideout {
+    background      : url(../img/icon_photo.png) 100% 20% no-repeat;
+}
+
+.done_photos {
+    background      : url(../img/icon_photo.png) 100% 20% no-repeat;
+}
+
+.button.camera {
+    background:#4dc2ff url(../img/icon_camera.png) 50% 50% no-repeat !important;
+}
+.button.audio{
+    background:#4dc2ff url(../img/icon_mic.png) 50% 50% no-repeat !important;
+}
+
+.mediaitem .votes a{
+    background          : #fff url(../img/icon_thumbs.png) 0 0 no-repeat;
+}
+.mediaitem .audiorec{
+    background          : #4dc2ff url(../img/icon_mic.png) 50% 50% no-repeat;
+}
+.mediaitem .hasAudio{
+    background          : url(../img/icon_listen.png) 50% 50% no-repeat;
+}
+.mediaitem .hasAudio.playing{
+    background          : url(../img/anim_soundwaves_blue.gif) 50% 50% no-repeat;
+    background-size: cover ;
+}
+
+.listen {
+    background: url(../img/icon_listen.png) 10px 4px no-repeat;
+}
+
+#pic_review  #saved_audio a{
+    background:#4dc2ff url(../img/icon_listen_2.png) no-repeat;
+}
+
+#pic_review  #saved_audio a.playing{
+    background:url(../img/icon_stop.png) no-repeat;
+}
+
+#pic_review  #saved_audio a.record_another{
+    background:#4dc2ff url(../img/icon_mic.png) 2px 4px no-repeat;
+}
+
+.daction.audio{
+    background:#4dc2ff url(../img/icon_mic.png) 50% 40% no-repeat;
+}
+.daction.keyboard{
+    background:transparent url(../img/icon_keyboard.png) 50% no-repeat;
+    background-size:contain;
+}
+
+.votes a{
+    background:#efefef url(../img/icon_thumbs.png) 4px 3px no-repeat;
+}
+.votes.smilies a{
+    background          : #efefef url(../img/icon_smilies.png) bottom left no-repeat;
+}
+
+#soundwaves {
+    background         : #000 url(../img/anim_soundwaves_bw.gif) 0 50% no-repeat;
+}
+#soundwaves.pause{
+    background-image   : url(../img/still_soundwaves_bw.png);
+}
+
+#audio_controls li a{
+    background         : url(../img/icon_stop.png) 50% 50% no-repeat;
+}
+
+.button.uploading {
+    background:url(../img/loading.gif) 10% 50% no-repeat;
+    background-size : 8%;
+}
+
+/* Landscape layout (with min-width) */
+@media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
+   
+    header:after {
+        background : url(../img/loading.gif) no-repeat;
+    }
+
+    #list_data tbody td i{
+        background:url(../img/icon_thumbs.png) top right no-repeat;
+    }
+    
+    #datastatus i {
+        background:url(../img/icon_thumbs.png) top right no-repeat;
+    }
+}
+
+
+
+
+
+#list_data .pics{
+    background:url(../img/icon_camera.png) 50% no-repeat;
+}
+#list_data .audio{
+    background:url(../img/icon_mic.png) 50% no-repeat;
+}
+#list_data .resync{
+    background:url(../img/icon_reset.png) 50% no-repeat;
+}
+#admin_view .resync{
+    background:url(../img/icon_reset.png) 50% no-repeat;
+}
+
+.trash {
+    background:url(../img/icon_trash.png) 50% 20% no-repeat;
+    background-size:20%;
+}
+.walk {
+    background:#91AA3A url(../img/icon_walk.png) 50% 20% no-repeat;
+    background-size:20%;
+}
+.pics {
+    background:#ddaa75 url(../img/icon_camera.png) 50% 20% no-repeat;
+    background-size:30%;
+}
+.audios {
+    background:#4dc2ff url(../img/icon_mic.png) 50% 20% no-repeat;
+    background-size:20%;
+}
+
+
+#step_zero .button{
+    margin-top:50px;
+}
+
+
+
+.btn.finish{
+    font-size:85%;
+    padding:5px 10px;
+    display         : block;
+    border-radius   : 5px;
+    color           : #000;
+    font-size       : 140%;
+    font-weight     : bold; 
+    text-decoration : none;
+    background      : #ECF16D;
+    margin          : 20px auto 0;
+    padding         : 15px 0;
+    text-align      : center;
+    position        : relative;
+    box-shadow: 0 0 1px 1px #888;
+}
+
+
+.alternate_upload.uploading{
+    background:url(../img/icon_spinner.gif) 50% no-repeat;
+    background-size:contain;
+}
+
+.alternate_upload.uploading a{
+    font-size:100%;
+}
+
+#main.blocking_notif:before{
+    content:"";
+    width:2000px;
+    height:2000px;
+    opacity:.5;
+    background:#333;
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:10000;
+}
+
+#main.blocking_notif #notice{
+    display:block;
+}
+#notice{
+    display:none;
+    position:absolute;
+    width:80%;
+    left:50%;
+    top:50%;
+    margin-left: -40%;
+    transform: translateY(-50%);
+
+    background:#efefef;
+    border-radius:8px;
+    z-index:10001;
+    text-align:center;
+    box-shadow:0 0 3px #333;
+}
+
+#notice h3{
+    background:#333;
+    color:#fff;
+    margin:0px;
+    padding:8px 20px;
+    border-radius:8px 8px 0 0;
+}
+#notice p{
+    margin:0;
+    padding:12px 20px 20px;
+    font-size:140%;
+}

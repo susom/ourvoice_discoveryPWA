@@ -1,0 +1,18 @@
+version: '3'
+services:
+    app:
+        build:
+            context: .
+        restart: always
+        stdin_open: true
+        ports:
+            - "8888:3000"
+        environment:
+            - WATCHPACK_POLLING=true
+            - FAST_REFRESH=false
+            - WDS_SOCKET_PORT=0 # Necessary for hot reload
+        volumes:
+            - './:/app:delegated'
+            - '/app/node_modules'
+        env_file:
+            - .env

@@ -1,0 +1,83 @@
+
+.home {
+    margin:0 auto;
+    text-align:center;
+}
+
+.home .view_lead{
+    padding:20px 0;
+}
+
+.home .project_setup_form{
+    padding:25px 0 ;
+    background:#555557;
+    color:#fff;
+}
+
+.home .project_setup_form label{
+    display:block;
+    margin-bottom:15px;
+}
+
+.home .project_setup_form input {
+    border-radius:3px;
+    border:1px solid #333;
+}
+
+.home .project_setup_form input.signedIn{
+    border:none;
+    background:transparent;
+    color:#fff;
+}
+
+.home .project_setup_form span {
+    display:inline-block;
+    width: auto;
+    margin-right: 8px;
+    text-align: right;
+}
+.home .project_setup_form span.input_field{
+    margin-right:initial;
+    text-align:left;
+    min-width:200px;
+}
+.home .project_setup_form span:not(.input_field):after{
+    content:" :";
+}
+
+.home .home_actions {
+    padding:25px 0;
+}
+
+.home .home_actions button,
+.home a[role='button']{
+    display:block;
+    padding: 15px 0;
+    margin: 0 auto 17px;
+    width:100%;
+    max-width: 300px;
+    box-shadow: 1px 1px 3px 1px #ccc;
+    border:1px solid transparent;
+    color:#fff;
+}
+
+.home .home_actions .start_walk,
+.home .home_actions .project_setup{
+    background:#96AA3D;
+}
+
+.home .home_actions button.truncate_database{
+    background:url("../images/button_clear_device.png") left 50% repeat-x;
+    background-size:contain;
+    text-indent:-5000px;
+    border:none;
+    box-shadow:none;
+}
+
+
+.home .home_actions .change_project{
+    background:#35587E;
+}
+.home .home_actions .upload_data{
+    background:#7C2A8B;
+}
