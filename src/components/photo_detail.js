@@ -146,9 +146,20 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
     const saveTag = (e, item) => {
         e.preventDefault();
         const tags_copy = [...tags];
-        tags_copy.push(item);
+
+        // Check if the tag already exists in the tags array
+        const tagIndex = tags_copy.indexOf(item);
+
+        // If it exists, remove it. If it doesn't, add it.
+        if (tagIndex > -1) {
+            tags_copy.splice(tagIndex, 1);  // remove the tag
+        } else {
+            tags_copy.push(item);  // add the tag
+        }
+
         setTags(tags_copy);
     }
+
 
     const savePhoto = (e,_this) => {
         e.preventDefault();
