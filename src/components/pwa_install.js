@@ -99,7 +99,7 @@ const PWAInstallModal = () => {
                 </BrowserView>
                 <MobileView className={`pwa_install`}>
                     <p>The Discovery Tool can be installed as an app on your <b>iOS device (iPhone, iPad)</b> using the <b>Safari browser</b> only.
-                        This will install an app icon on hour homescreen and enable offline use of the app after being loaded for the first time.</p>
+                        This will install an app icon on your homescreen and enable offline use of the app after being loaded for the first time.</p>
                     <ol>
                         <li >
                             <img style={{ maxWidth: '85%', borderRadius: '10px', display: 'block' }} src={safari_install_1} alt={`figure 1`}></img>

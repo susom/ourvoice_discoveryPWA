@@ -90,7 +90,7 @@ function ViewProjectDetails(props){
             });
         }else{
             setStatus("Invalid Project Id or Project Passcode");
-            props.setAlertMessage({"title" : "Pleas try again", "body" : "Wrong Project ID or Passcode", "cancel_txt" : "Close" , "ok_txt" : ""});
+            props.setAlertMessage({"title" : "Please try again", "body" : "Wrong Project ID or Passcode", "cancel_txt" : "Close" , "ok_txt" : ""});
             props.setShowModal(true);
             props.setPword("");
         }
