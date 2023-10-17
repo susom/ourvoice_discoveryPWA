@@ -24,3 +24,24 @@
     top: 35%;
     left: 16%;
 }
+
+
+@media (orientation: landscape) {
+
+    .view_header {
+        min-height:17vh;
+
+    }
+
+    .view_body{
+        top:40%;
+    }
+
+    .view_footer {
+        max-height: 12vh;
+    }
+
+    .walk .button.action b {
+        bottom:0 !important;
+    }
+}
