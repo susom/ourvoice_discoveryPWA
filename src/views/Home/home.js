@@ -1,4 +1,4 @@
-import {useEffect, useState, useContext } from "react";
+import {useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from 'react-bootstrap';
 
@@ -75,7 +75,8 @@ function ViewProjectDetails(props){
                             text_comments           : parseInt(doc.get("text_comments")),
                             thumbs                  : parseInt(doc.get("thumbs")),
                             ov_meta                 : session_context.translations,
-                            timestamp               : Date.now()
+                            timestamp               : Date.now(),
+                            current_language        : "en"
                         };
 
                         setLanguage(active_project_data.languages);
@@ -186,7 +187,7 @@ function ViewProjectDetails(props){
 function Actions(props){
     const session_context       = useContext(SessionContext);
     const walk_context          = useContext(WalkContext);
-
+    const { getTranslation }    = useContext(SessionContext);
     const [clicks, setClicks]   = useState(0);
 
     const onClickDeleteInc = () => {
@@ -213,73 +214,66 @@ function Actions(props){
         }
     }
 
-    const startConsent = (e) => {
-        //DONT NEED ANYTHING HERE
-    }
-    const signInProject = (e) => {
-        //DONT NEED ANYTHING HERE?
-        // console.log("sign in project");
-    }
-
     const changeProject = (e) => {
         props.projectSignInOut(false);
         updateContext(session_context, {"project_id" : null});
         updateContext(walk_context, {"project_id" : null});
+
+        session_context.handleLanguageChange("en");
+
         // console.log("change project");
     }
 
-    const start_walk_text       = session_context.getTranslation("start");
-    const change_project_text   = session_context.getTranslation("change_project");
-    const view_data_text        = session_context.getTranslation("view_upload");
-    const setup_text            = session_context.getTranslation("setup_project");
-    const clear_db_text         = session_context.getTranslation("truncate_localdb");
+    // Use useMemo to compute translations only when necessary
+    const translations = useMemo(() => ({
+        start_walk_text: getTranslation("start"),
+        change_project_text: getTranslation("change_project"),
+        view_data_text: getTranslation("view_upload"),
+        setup_text: getTranslation("setup_project"),
+        clear_db_text: getTranslation("truncate_localdb")
+    }), [getTranslation]);
 
-    //DO WE STILL NEED AN "upload page"?
-    return props.signedIn  ? (
+    const SignedInButtons = () => (
         <div className="home_actions">
             <Button
                 className="start_walk project_setup"
                 variant="primary"
                 as={Link} to="/consent"
-                onClick={(e) => {
-                    startConsent(e);
-                }}
-            >{start_walk_text}</Button>
+            >{translations.start_walk_text}</Button>
 
             <Button
                 className="change_project project_setup"
                 variant="info"
-                onClick={(e) => {
-                    changeProject(e);
-                }}
+                onClick={changeProject}
                 as={Link} to="/home"
-            >{change_project_text}</Button>
+            >{translations.change_project_text}</Button>
 
             <Button
                 className="upload_data project_setup"
                 variant="info"
                 as={Link} to="/upload"
-            >{view_data_text}</Button>
+            >{translations.view_data_text}</Button>
         </div>
-    ) : (
+    );
+
+    const NotSignedInButtons = () => (
         <div className="home_actions">
             <Button
                 form="signin_project"
                 type="submit"
                 variant="success"
                 className="project_setup"
-                onClick={(e) => {
-                    signInProject(e);
-                }}
-            >{setup_text}</Button>
+            >{translations.setup_text}</Button>
 
             <Button
                 variant="warning"
                 className="truncate_database"
                 onClick={onClickDeleteInc}
-            >{clear_db_text}</Button>
+            >{translations.clear_db_text}</Button>
         </div>
     );
+
+    return props.signedIn ? <SignedInButtons /> : <NotSignedInButtons />;
 }
 
 function ViewBox(props){
@@ -342,6 +336,7 @@ function ViewBox(props){
                 <AlertModal show={showModal} handleCancel={handleCancel} handleOK={handleOK} message={alertMessage}/>
                 {/*<PermissionModal permissionNames={["camera","geo"]} />*/}
 
+                {/*preload these images up front*/}
                 <div style={{ width: 0, height: 0, overflow: "hidden", visibility: "hidden" }}>
                     <img src={pic_walk_with_another} alt="Hidden" />
                     <img src={pic_danger_2} alt="Hidden" />
@@ -390,6 +385,8 @@ export function Home(){
                         };
 
                         updateContext(session_context, session_data);
+                        session_context.handleLanguageChange(ap["current_language"]);
+
                         setPcode(ap["project_id"]);
                         setSignedIn(true);
                     }
@@ -402,7 +399,7 @@ export function Home(){
         });
 
 
-    }, [session_context]);
+    }, []);
 
     return (
         <ViewBox signedIn={signedIn} setSignedIn={setSignedIn} pcode={pcode} setPcode={setPcode} pword={pword} setPword={setPword}/>

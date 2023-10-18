@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect } from 'react';
 import { cloneDeep } from "../components/util";
 import { firestore } from "../database/Firebase";
+import {db_project} from "../database/db";
+
 import { collection, getDocs, getDoc,  collectionGroup, doc,  where, query } from "firebase/firestore";
 import defaultTranslations from './defaultTranslations.json';
 import useAnonymousSignIn from "../components/useAnonymousSignIn";
@@ -82,14 +84,15 @@ export const SessionContextProvider = ({children}) => {
         // console.log("Translations have been updated SHOULD ONLY SHOW AFTER THE ABOVE USE EFFECT RIGHT?:", translations);
     }, [translations]);
 
-
-    useEffect(() => {
-        // console.log("Selected language: ", selectedLanguage);
-        // console.log("Current translations: ", translations);
-    }, [selectedLanguage]);
-
-    const handleLanguageChange = (language) => {
+    const handleLanguageChange = async (language) => {
         setSelectedLanguage(language);
+
+        // Save the selected language to db_project
+        try {
+            await db_project.active_project.update(data.project_id, { current_language: language });
+        } catch (error) {
+            console.error('Error saving selected language to db_project:', error);
+        }
     }
 
     const getTranslation = (key) => {
