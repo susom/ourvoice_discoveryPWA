@@ -78,7 +78,7 @@ function ViewBox(props){
         updateContext(walk_context, {"complete" : 1});
 
         putDb(db_walks.walks, walk_context.data);
-        session_context.resetData();
+        walk_context.resetData();
     }
 
     const your_route_text       = session_context.getTranslation("your_route");
