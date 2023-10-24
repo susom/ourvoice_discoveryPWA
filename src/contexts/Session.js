@@ -34,7 +34,7 @@ export const SessionContextProvider = ({children}) => {
 
     const [selectedLanguage, setSelectedLanguage]       = useState('en');
     const [translations, setTranslations]               = useState(defaultTranslations);
-    const [version, setVersion]                         = useState("v 4.0.0");
+    const [version, setVersion]                         = useState("checking version ...");
 
     const [isAudioPermissionGranted, setIsAudioPermissionGranted]   = useState(false);
     const [isGeoPermissionGranted, setIsGeoPermissionGranted]       = useState(false);
