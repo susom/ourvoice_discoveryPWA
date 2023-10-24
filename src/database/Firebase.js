@@ -14,7 +14,6 @@ const firebaseConfig = {
     authDomain: "som-rit-ourvoice.firebaseapp.com",
     databaseURL: "https://som-rit-ourvoice.firebaseio.com",
     projectId: "som-rit-ourvoice",
-    // storageBucket: "som-rit-ourvoice.appspot.com",
     storageBucket: "ov_walk_files",
     messagingSenderId:"696489330177",
     appId: "1:696489330177:web:268b76243b9281a0a3e200",
@@ -27,7 +26,9 @@ const firebaseConfig = {
 // Initialize Firebase
 const firebase              = initializeApp(firebaseConfig);
 export const auth           = getAuth(firebase);
-export const storage        = getStorage(firebase);
+export const storage        = getStorage(firebase)
+export const storage_2      = getStorage(firebase, "transform_ov_walk_files");
+
 export const firestore      = getFirestore(firebase);
 
 // Enable persistence with multi-tab synchronization

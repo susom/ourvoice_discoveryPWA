@@ -1,5 +1,5 @@
 // syncManager.js
-import {auth, firestore, storage} from "./Firebase";
+import {auth, firestore, storage, storage_2} from "./Firebase";
 import {signInAnonymously} from "firebase/auth";
 import {db_files, db_walks} from "./db";
 import {ref, uploadBytes, uploadBytesResumable} from "firebase/storage";
@@ -16,8 +16,12 @@ async function uploadFiles(file_arr){
         const file_path     = temp_path[0] + "/" + temp_path[1] + "/" + temp_path[2] + "/" + file_name;
 
         const storageRef    = ref(storage, file_path);
+        const storageRef_2  = ref(storage_2, file_path);
+
         let fileToUpload    = file.file;
+        let isImage         = false;
         if (isBase64(fileToUpload)) {
+            isImage = true;
             const binaryString = atob(fileToUpload.split(",")[1]);
             const byteArray = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -27,7 +31,8 @@ async function uploadFiles(file_arr){
         }
 
         return new Promise((resolve, reject) => {
-            const uploadTask = uploadBytesResumable(storageRef, fileToUpload);
+            const which_storage = isImage ? storageRef_2 : storageRef;
+            const uploadTask    = uploadBytesResumable(which_storage, fileToUpload);
             uploadTask.on('state_changed',
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
