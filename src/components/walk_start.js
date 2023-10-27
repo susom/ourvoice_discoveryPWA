@@ -23,6 +23,32 @@ function WalkStart(props) {
     const [cameraLoaded, setCameraLoaded]           = useState(false);
     const [customPhotoPrompt, setCustomPhotoPrompt] = useState("");
 
+    //need work around for camera failing in ios < 17
+    const [cameraStarting, setCameraStarting]               = useState(false);
+    const [hiddenInputTriggered, setHiddenInputTriggered]   = useState(false);
+    const [cameraError, setCameraError] = useState(null);
+
+    const initCamera = async () => {
+        try {
+            await navigator.mediaDevices.getUserMedia({ video: true });
+            setTakePhoto(true);
+        } catch (error) {
+            console.error("Camera initiation failed:", error);
+            setCameraError(error.message || "There was an issue accessing the camera.");
+        }
+    }
+
+    const handleCameraFail = () => {
+        if (!hiddenInputTriggered) {
+            const hiddenInput = document.querySelector('#hiddenCameraInput');
+            if (hiddenInput) {
+                hiddenInput.click();
+                setHiddenInputTriggered(true);
+            }
+        }
+    }
+
+
     useEffect(() => {
         setCustomPhotoPrompt(session_context.data.project_info.custom_take_photo_text);
     }, [session_context.data.project_info.custom_take_photo_text]);
@@ -67,11 +93,22 @@ function WalkStart(props) {
                 {
                     !cameraLoaded && (<div className="react-html5-camera-photo "><img className={`loading_photo_ui`} src={loading_photo_ui_boring} alt={`loading UI`} /></div>)
                 }
+                {/*<Camera*/}
+                {/*    onTakePhoto={props.handleTakePhoto}*/}
+                {/*    idealFacingMode="environment" // Prioritize the back camera*/}
+                {/*    onCameraStart={() => setCameraLoaded(true)}*/}
+                {/*/>*/}
+
+                {cameraError && <div className="error">{cameraError}</div>}
+
                 <Camera
                     onTakePhoto={props.handleTakePhoto}
                     idealFacingMode="environment" // Prioritize the back camera
                     onCameraStart={() => setCameraLoaded(true)}
+                    // Assuming Camera has an onError prop.
+                    onError={handleCameraFail}
                 />
+                <input type="file" id="hiddenCameraInput" name="picture" accept="image/*" capture="user" style={{ display: 'none' }} onChange={handleCameraFail} />
             </>
             :
             <Container className="content walk walk_start" >
