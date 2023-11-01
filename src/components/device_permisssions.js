@@ -137,28 +137,32 @@ function PermissionModal({ permissionNames , closeModal, onPermissionChanged, se
                     </div>
                 )}
                 <div className="permissions">
-                    {permissionNames.map(permissionName => (
-                        permissions[permissionName] !== "denied" && (
-                            <div key={permissionName}>
-                                <PermissionButton
-                                    permissionName={permissionName}
-                                    isGranted={permissions[permissionName] === "granted"}
-                                    isLoading={loading[permissionName]}
-                                    onGrant={() => {
-                                        requestPermission(permissionName).then(result => {
-                                            if (permissionName === 'geo' && result === "granted") {
-                                                onPermissionChanged(true);
-                                            }
-                                        });
-                                    }}
+                    {permissionNames.map((permissionName) => {
+                        return (
+                            permissions[permissionName] !== "denied" && (
+                                <div key={permissionName}>
+                                    <PermissionButton
+                                        permissionName={permissionName}
+                                        isGranted={permissions[permissionName] === "granted"}
+                                        isLoading={loading[permissionName]}
+                                        onGrant={() => {
+                                            requestPermission(permissionName).then(result => {
+                                                if (permissionName === 'geo' && result === "granted") {
+                                                    onPermissionChanged(true);
+                                                }
+                                            });
+                                        }}
 
-                                    iconGranted={permission_messaging[permissionName]["icon"]}
-                                    iconLocked={<Lock size={40}/>}
-                                    description={permission_messaging[permissionName]["msg"]}
-                                />
-                            </div>
+                                        iconGranted={permission_messaging[permissionName]["icon"]}
+                                        iconLocked={<Lock size={40}/>}
+                                        description={permissions[permissionName] === "granted"
+                                            ? "Permission Granted/Verified"
+                                            : permission_messaging[permissionName]["msg"]}
+                                    />
+                                </div>
+                            )
                         )
-                    ))}
+                    })}
                 </div>
             </Modal.Body>
         </Modal>

@@ -59,7 +59,7 @@ export const WalkmapContextProvider = ({children}) => {
     }, [startTracking, session_context.data.in_walk]);
 
     return (
-        <WalkmapContext.Provider value={{data, setData, startGeoTracking}}>
+        <WalkmapContext.Provider value={{data, setData, startGeoTracking, startTracking}}>
             {children}
         </WalkmapContext.Provider>
     );

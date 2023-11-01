@@ -20,7 +20,7 @@
     "react-detect-offline": "2.4.5",
     "react-device-detect": "2.2.3",
     "react-dom": "^18.2.0",
-    "react-html5-camera-photo": "1.5.10",
+    "react-html5-camera-photo": "^1.5.11",
     "react-media-recorder": "1.6.6",
     "react-modal": "^3.16.1",
     "react-router-dom": "^6.4.3",

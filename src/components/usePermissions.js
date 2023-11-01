@@ -106,6 +106,7 @@ const usePermissions = () => {
                         geo: geoResult,
                     }));
 
+                    setIsGeoPermissionGranted(true);
                     return geoResult; // should be 'granted'
                     break;
 
