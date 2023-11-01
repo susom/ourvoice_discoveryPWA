@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { SessionContext } from '../contexts/Session';
+import {permissionTimeout , getGeoPermission} from "./util";
 
 const usePermissions = () => {
     const { isAudioPermissionGranted, setIsAudioPermissionGranted, isGeoPermissionGranted, setIsGeoPermissionGranted, isCameraPermissionGranted, setIsCameraPermissionGranted } = useContext(SessionContext);
@@ -65,7 +66,12 @@ const usePermissions = () => {
         try {
             switch (permissionName) {
                 case 'camera':
-                    const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    const videoPromise  = navigator.mediaDevices.getUserMedia({ video: true });
+                    const videoStream   = await Promise.race([
+                        videoPromise,
+                        permissionTimeout(10000)
+                    ]);
+
                     videoStream.getTracks().forEach(track => track.stop());
                     setPermissions(prevPermissions => ({
                         ...prevPermissions,
@@ -75,7 +81,12 @@ const usePermissions = () => {
                     break;
 
                 case 'audio':
-                    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const audioPromise  = navigator.mediaDevices.getUserMedia({ audio: true });
+                    const audioStream   = await Promise.race([
+                        audioPromise,
+                        permissionTimeout(10000)
+                    ]);
+
                     audioStream.getTracks().forEach(track => track.stop());
                     setPermissions(prevPermissions => ({
                         ...prevPermissions,
@@ -85,37 +96,32 @@ const usePermissions = () => {
                     break;
 
                 case 'geo':
-                    const granted = await new Promise((resolve) => {
-                        if (navigator.geolocation) {
-                            navigator.geolocation.getCurrentPosition(
-                                () => {
-                                    setIsGeoPermissionGranted(true);
-                                    resolve('granted');
-                                },
-                                () => {
-                                    setIsGeoPermissionGranted(false);
-                                    resolve('denied');
-                                }
-                            );
-                        } else {
-                            resolve('denied');
-                        }
-                    });
+                    const geoResult = await Promise.race([
+                        getGeoPermission(),
+                        permissionTimeout(12000)
+                    ]);
+
                     setPermissions(prevPermissions => ({
                         ...prevPermissions,
-                        geo: granted,
+                        geo: geoResult,
                     }));
+
+                    return geoResult; // should be 'granted'
                     break;
 
                 default:
                     break;
             }
         } catch (error) {
-            if (error.name === 'NotAllowedError') {
+            if (error.name === 'NotAllowedError' || error.message === "Permission request timed out" || error.message === "GEO USER DENIED") {
                 setPermissions(prevPermissions => ({
                     ...prevPermissions,
                     [permissionName]: 'denied',
                 }));
+                return 'denied'; // Resolve with the result
+            } else if(error.message ===  "GEO UNAVAILABLE"){
+                // how to handle if temproary unavalible? try again , push button again?  error.message ===  "GEO UNAVAILABLE"
+                alert("GEO API Temporarily Unavailable...Please Try again");
             } else {
                 console.error(`An error occurred while requesting ${permissionName} permission: ${error}`);
             }

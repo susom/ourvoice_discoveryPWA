@@ -1,5 +1,5 @@
 import _ from "lodash";
-
+import {db_logs} from "../database/db";
 
 export function getDeviceType(){
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -12,21 +12,32 @@ export function getDeviceType(){
     return 'unknown';
 };
 
-export function putDb(db_table, context_data){
-    const update_db = async () => {
-        try {
-            const update_prom  = await db_table.put(context_data).then(() => {
-                console.log(context_data.id, "Context Data auto gets id from og add/put, put-ing the Context Data again will update");
-            });
-
-
-            return [update_prom];
-        } catch (error) {
-            console.log(`Failed to add/update record ${context_data.id} in ${db_table}: ${error}`);
-        }
-    };
-    return update_db();
+export async function putDb(db_table, context_data) {
+    try {
+        const id = await db_table.put(context_data);
+        // console.log(id, "Context Data auto gets id from og add/put, put-ing the Context Data again will update");
+    } catch (error) {
+        console.log(`Failed to add/update record ${context_data.id} in ${db_table}: ${error}`);
+    }
 }
+
+
+export async function logError(projectId, walkId, type, message) {
+    const logData = {
+        project_id: projectId,
+        walk_id: walkId,
+        type: type,
+        message: message
+    };
+
+    try {
+        const id = await db_logs.logs.add(logData);
+        console.log('Log added with id:', id);
+    } catch (error) {
+        console.error('Error adding log:', error);
+    }
+}
+
 
 export async function bulkUpdateDb(db, table, recordsToUpdate){
     await db.transaction('rw', db[table], async () => {
@@ -65,6 +76,45 @@ export function deepMerge(og_obj, update_obj){
 export function shallowMerge(og_obj, update_obj){
     return Object.assign(og_obj, update_obj);
 }
+
+export function permissionTimeout(ms) {
+    return new Promise((_, reject) => {
+        setTimeout(() => {
+            // console.log('Timeout promise resolved at:', Date.now());
+            reject(new Error('Permission request timed out'));
+        }, ms);
+    });
+}
+
+export function getGeoPermission() {
+    return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                () => {
+                    // console.log('Geo permission resolved at:', Date.now());
+                    resolve('granted')
+                },
+                (err) => {
+                    switch (err.code) {
+                        case err.PERMISSION_DENIED:
+                            reject(new Error('GEO USER DENIED'));
+                            break;
+                        case err.POSITION_UNAVAILABLE:
+                            reject(new Error('GEO UNAVAILABLE'));
+                            break;
+                        default:
+                            // err.TIMEOUT
+                            reject(new Error('Permission request timed out'));
+                            break;
+                    }
+                }
+            );
+        } else {
+            reject(new Error('GEO UNAVAILABLE'));
+        }
+    });
+}
+
 
 export function hasGeo(){
     return !! (navigator.geolocation);

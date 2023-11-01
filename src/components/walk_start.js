@@ -54,7 +54,9 @@ function WalkStart(props) {
     }, [session_context.data.project_info.custom_take_photo_text]);
 
     const initGeoTracking = (permissionGranted) => {
-        walkmap_context.startGeoTracking();
+        if(permissionGranted) {
+            walkmap_context.startGeoTracking();
+        }
     };
 
     const takePhotoHandler = (e) => {

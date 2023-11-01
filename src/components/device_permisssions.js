@@ -129,7 +129,11 @@ function PermissionModal({ permissionNames , closeModal, onPermissionChanged, se
                                     isGranted={permissions[permissionName] === "granted"}
                                     isLoading={loading[permissionName]}
                                     onGrant={() => {
-                                        requestPermission(permissionName)
+                                        requestPermission(permissionName).then(result => {
+                                            if (permissionName === 'geo' && result === "granted") {
+                                                onPermissionChanged(true);
+                                            }
+                                        });
                                     }}
 
                                     iconGranted={permission_messaging[permissionName]["icon"]}
