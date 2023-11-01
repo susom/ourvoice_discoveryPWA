@@ -11,6 +11,10 @@
     /*border:1px solid red;*/
 }
 
+.permissions_spotCheck em{
+    font-size:85%;
+}
+
 .permission_request {
     border:1px solid #999;
     border-radius:5px;

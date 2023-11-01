@@ -95,15 +95,31 @@ function PermissionModal({ permissionNames , closeModal, onPermissionChanged, se
                         ) : (
                             <>
                                 <h5>1) On iOS with Safari:</h5>
+                                {deniedPermissions.includes('geo') && (
+                                    <>
+                                        <em>IOS GeoData permissions have 2 levels of permissions; System and App</em>
+                                        <ul>
+                                            <li>For System Level GEO Permissions : Go to device "Settings" -> "Privacy & Security" -> "Location Services"</li>
+                                            <li>Ensure that the toggle is green and click into it</li>
+                                            <li>Scroll down to "Safari Websites"</li>
+                                            <li>Adjust Permissions:
+                                                <ul>
+                                                <li>Ensure that "While Using the App" is checked</li>
+                                                <li>Ensure that "Precise Location" is toggled on (green)</li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </>
+                                )}
                                 <ul>
-                                    <li>Go to device "Settings".</li>
-                                    <li>Select "Safari".</li>
-                                    <li>Find "Settings for Websites".</li>
+                                    <li>For app level Permissions : Go to device "Settings".</li>
+                                    <li>Scroll down to "Safari".</li>
+                                    <li>Scroll down and find "Settings for Websites".</li>
                                     <li>Tap "Clear History and Website Data".</li>
                                     <li>Adjust Permissions:
                                         <ul>
-                                            <li>If Our Voice is listed, remove it.</li>
-                                            <li>If not, set permissions to "Ask" or "Allow".</li>
+                                            <li>If Our Voice app is listed, remove it.</li>
+                                            <li>Set permissions to "Ask" or "Allow".</li>
                                         </ul>
                                     </li>
                                 </ul>
