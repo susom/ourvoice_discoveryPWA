@@ -466,6 +466,47 @@ LIGHT GREY  : #E0E0E0
     margin: 0 auto 20px;
 }
 
-.react-html5-camera-photo {
-    max-height:60vh;
+.webcam-style {
+    object-fit: cover; /* cover the entire viewport without stretching */
+    width: 100vw; /* viewport width */
+    max-width: 100%;
+    max-height:72vh;
+    height: auto;
 }
+.camera-button-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    bottom: 3vh; /* Increase this to move the buttons a bit up */
+    left: 10px;
+    right: 10px;
+    padding: 0 20px;
+}
+
+.camera-button-container .cancel-button {
+    background-color: #820000;
+    color: #fff;
+    flex-grow: 1;
+    border: none;
+    border-radius: 4px; /* Adjust this value if needed */
+    padding: 8px 12px; /* Adjust padding if needed */
+    margin-right: 5px; /* Spacing between this and the next button */
+    cursor: pointer;
+    outline: none; /* Remove focus outline, but ensure there's a focus style for accessibility */
+}
+
+.capture-button {
+    flex-grow: 1;
+    background-color: #00548f; /* or any desired shade of blue */
+    color: #fff; /* white text color */
+    border: none;
+    border-radius: 4px; /* Adjust this value if needed */
+    padding: 8px 12px; /* Adjust padding if needed */
+    margin-left: 5px; /* Spacing between this and the previous button */
+    cursor: pointer;
+    font-weight: bold;
+    outline: none; /* Remove focus outline, but ensure there's a focus style for accessibility */
+}
+
+

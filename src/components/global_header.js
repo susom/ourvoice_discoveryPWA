@@ -22,6 +22,8 @@ function GlobalHeader() {
     const walk_context      = useContext(WalkContext);
     const walkmap_context   = useContext(WalkmapContext);
 
+    const {takePhoto}       = useContext(WalkContext);
+
     const project_info      = session_context.data.project_info;
     const walk_info         = walk_context.data;
 

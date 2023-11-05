@@ -16,6 +16,9 @@ function GlobalFooter (){
     const session_context       = useContext(SessionContext);
     const walk_context          = useContext(WalkContext);
 
+    const {takePhoto}           = useContext(WalkContext);
+
+
     const home_icon             = walk_context.data.walk_id ?  <HouseDoor color="#bbb" size={40} /> : <HouseDoorFill color="#eee" size={40} />;
     const home_link             = <Link to={`/home`} className="go_home">{home_icon}</Link>;
     const upload_link           = <Link to={`/upload`} className="go_home"><ArrowLeftCircle color="#bbb" size={40} onClick={(e) => {
@@ -30,7 +33,7 @@ function GlobalFooter (){
                                 }}><Search color="#bbb" size={18} className="icon_mag" /><Files color="#bbb" size={40} className="icon_files" /> (<span className="num_photos">{walk_context.photoCount}</span>)</Link>;
     const footer_link           = session_context.data.in_walk ? slide_preview : ( location.pathname !== "/upload" && session_context.previewWalk !== null ? upload_link : home_link) ;
 
-    return !show_footer ? ( "" ) : (
+    return !show_footer || takePhoto ? ( "" ) : (
         <>
             <div className="view_footer">
                 {footer_link}
