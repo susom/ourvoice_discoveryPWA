@@ -20,7 +20,7 @@ function WalkStart(props) {
     const walkmap_context   = useContext(WalkmapContext);
 
     const {takePhoto, setTakePhoto}                 = useContext(WalkContext);
-    const [cameraLoaded, setCameraLoaded]           = useState(false);
+    const {cameraLoaded, setCameraLoaded}           = useContext(WalkContext);
     const [customPhotoPrompt, setCustomPhotoPrompt] = useState("");
 
     const [cameraError, setCameraError] = useState(null);
@@ -77,6 +77,11 @@ function WalkStart(props) {
         (takePhoto) ?
             <>
                 {takePhoto && cameraError && <div className="error">{cameraError}</div>}
+                {!cameraLoaded && (
+                    <div className="loading-container">
+                        <img src={loading_photo_ui_boring} alt="Loading..." />
+                    </div>
+                )}
                 {takePhoto && !cameraError && <Webcam
                     audio={false}  // Captures audio along with video
                     screenshotFormat="image/jpeg"
@@ -87,8 +92,8 @@ function WalkStart(props) {
                         facingMode: "environment",  // prioritize back camera
                         frameRate: 30  // (optional)
                     }}
-                    onUserMedia={() => {  // Callback when media stream is loaded
-                        setCameraLoaded(true); // Add this line
+                    onUserMedia={() => {
+                        setCameraLoaded(true);
                         console.log("Webcam media stream loaded");
                     }}
                     onUserMediaError={(error) => {  // Callback on media stream error
@@ -119,7 +124,10 @@ function WalkStart(props) {
 
                 <div className="camera-button-container">
                     <button
-                        onClick={() => setTakePhoto(!takePhoto)}
+                        onClick={() => {
+                            setCameraLoaded(false);
+                            setTakePhoto(!takePhoto);
+                        }}
                         className="btn cancel-button">
                         <b>Cancel</b>
                     </button>

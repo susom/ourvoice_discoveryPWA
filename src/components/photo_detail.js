@@ -28,7 +28,10 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
     const session_context   = useContext(SessionContext);
     const walk_context      = useContext(WalkContext);
 
-    const [permissions] = usePermissions();
+    const {setTakePhoto}    = useContext(WalkContext);
+    const {setCameraLoaded} = useContext(WalkContext);
+
+    const [permissions]     = usePermissions();
 
     const [upVote, setUpVote]               = useState(false);
     const [downVote, setDownVote]           = useState(false);
@@ -229,6 +232,9 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
         clearStates();
         session_context.setPreviewWalk(null);
         session_context.setPreviewPhoto(null);
+
+        setTakePhoto(false);
+        setCameraLoaded(false);
         e.stopPropagation();
         return true;
     }
@@ -236,6 +242,9 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
     const deletePhoto = (e,_this) => {
         e.preventDefault();
         clearStates();
+
+        setTakePhoto(false);
+        setCameraLoaded(false);
         session_context.setPreviewWalk(null);
         session_context.setPreviewPhoto(null);
     }

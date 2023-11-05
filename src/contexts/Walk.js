@@ -22,10 +22,11 @@ export const WalkContext = createContext({
 });
 
 export const WalkContextProvider = ({children}) => {
-    const clean_obj                     = cloneDeep(context_init);
-    const [data, setData]               = useState(clean_obj);
-    const [photoCount, setPhotoCount]   = useState(0);
-    const [takePhoto, setTakePhoto]     = useState(false);
+    const clean_obj                         = cloneDeep(context_init);
+    const [data, setData]                   = useState(clean_obj);
+    const [photoCount, setPhotoCount]       = useState(0);
+    const [takePhoto, setTakePhoto]         = useState(false);
+    const [cameraLoaded, setCameraLoaded]   = useState(false);
 
     const resetData = () => {
         const clean_obj     = cloneDeep(context_init);
@@ -34,7 +35,7 @@ export const WalkContextProvider = ({children}) => {
     }
 
     return (
-        <WalkContext.Provider value={{data, setData, resetData, photoCount, setPhotoCount, takePhoto, setTakePhoto}}>
+        <WalkContext.Provider value={{data, setData, resetData, photoCount, setPhotoCount, takePhoto, setTakePhoto, cameraLoaded, setCameraLoaded}}>
             {children}
         </WalkContext.Provider>
     );
