@@ -31,30 +31,21 @@ export const storage_2      = getStorage(firebase, "transform_ov_walk_files");
 
 export const firestore      = getFirestore(firebase);
 
-// Enable persistence with multi-tab synchronization
-// enableMultiTabIndexedDbPersistence(firestore)
-//     .catch((error) => {
-//         if (error.code === 'failed-precondition') {
-//             console.log('Persistence can only be enabled in one tab at a a time.');
-//         } else if (error.code === 'unimplemented') {
-//             console.log('The current browser does not support all of the features required to enable persistence.');
-//         }
-//     });
-
 enableIndexedDbPersistence(firestore, { experimentalForceOwningTab: true })
     .catch((error) => {
         if (error.code === 'failed-precondition') {
-            console.log('Persistence can only be enabled in one tab at a a time.');
+            // Possibly multiple tabs open at once.
+            console.error('Persistence can only be enabled in one tab at a time.');
+            // Inform the user that offline mode is only available in one tab.
         } else if (error.code === 'unimplemented') {
-            console.log('The current browser does not support all of the features required to enable persistence.');
+            // The current browser does not support all the features required to enable persistence
+            console.error('This browser does not support offline data persistence.');
+            // Inform the user that offline capabilities are not supported in this browser.
+        } else {
+            // Handle other errors that could occur
+            console.error('An unexpected error occurred enabling offline persistence', error);
+            // Inform the user there was an error setting up offline capabilities.
         }
     });
 
-// enableIndexedDbPersistence(firestore).catch((error) => {
-//     if (error.code === 'failed-precondition') {
-//         console.log('Persistence can only be enabled in one tab at a a time.');
-//     } else if (error.code === 'unimplemented') {
-//         console.log('The current browser does not support all of the features required to enable persistence.');
-//     }
-// });
 export const analytics      = getAnalytics(firebase);
