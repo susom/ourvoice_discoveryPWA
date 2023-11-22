@@ -385,7 +385,9 @@ LIGHT GREY  : #E0E0E0
 
 .project_tag.on{
     color:#000;
-    font-weight:bold;
+    /*ackground-color:#d7ecfa;*/
+    /*background-color:#E3f2D3;b*/
+    background-color:#FFF9C4;
 }
 
 .project_tag{

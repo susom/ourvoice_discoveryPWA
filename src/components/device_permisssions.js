@@ -65,6 +65,7 @@ function PermissionModal({ permissionNames , closeModal, onPermissionChanged, se
     };
 
     const navigate = useNavigate();
+    const capitalizeFirstChar = str => `${str[0].toUpperCase()}${str.slice(1)}`;
 
     return (
         <Modal
@@ -156,7 +157,7 @@ function PermissionModal({ permissionNames , closeModal, onPermissionChanged, se
                                         iconGranted={permission_messaging[permissionName]["icon"]}
                                         iconLocked={<Lock size={40}/>}
                                         description={permissions[permissionName] === "granted"
-                                            ? "Permission Granted/Verified"
+                                            ? capitalizeFirstChar(permissionName) + " Permission Granted"
                                             : permission_messaging[permissionName]["msg"]}
                                     />
                                 </div>
