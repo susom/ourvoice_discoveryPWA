@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from 'react-bootstrap';
 import  Slider  from 'react-slide-out';
@@ -45,32 +45,32 @@ function SlideOut(props){
     const [summWalkID, setSummWalkID]       = useState(null);
     const [walkSumm, setWalkSumm]           = useState([]);
 
+    const audioRef      = useRef(null);
+    const walkAudiosRef = useRef({});
+
+
+    useEffect(() => {
+        walkAudiosRef.current = walkAudios;
+    }, [walkAudios]);
+
+
     useEffect(() => {
         async function prepSummary(doc_id, photos) {
             // Query the database for records where fileName matches any value in the array
             const files_arr = buildFileArr(doc_id, photos);
-            const files = await db_files.files.where('name').anyOf(files_arr).toArray();
+            const files     = await db_files.files.where('name').anyOf(files_arr).toArray();
 
             const summ_preview = photos.map((photo, index) => {
                 // Use Dexie to get photo + audio
-                const photo_name = doc_id + "_" + photo.name;
-                const photo_base64 = getFileByName(files, photo_name); // Assuming this gets the base64 data
+                const photo_name    = doc_id + "_" + photo.name;
+                const photo_base64  = getFileByName(files, photo_name); // Assuming this gets the base64 data
+                const img_preview   = <img src={photo_base64} className={`slide_preview`} alt={`preview`} />;
 
-                for (let audio_i in photo.audios) {
-                    const audio_name = doc_id + "_" + audio_i;
-                    const update_obj = {};
-                    update_obj[audio_name] = getFileByName(files, audio_name);
-                    const copy_audios = shallowMerge(walkAudios, update_obj);
-                    setWalkAudios(copy_audios);
-                }
-
-                const img_preview = <img src={photo_base64} className={`slide_preview`} alt={`preview`} />;
-
-                const vote_type = session_context.data.project_info.thumbs === 2 ? "smilies" : "thumbs";
-                const vote_good = photo.goodbad === 1 || photo.goodbad === 3 ? <span className={`icon ${vote_type} up`}>smile</span> : "";
-                const vote_bad = photo.goodbad === 2 || photo.goodbad === 3 ? <span className={`icon ${vote_type} down`}>frown</span> : "";
-                const has_text = photo.text_comment !== "" ? <span className={`icon keyboard`}>keyboard</span> : "";
-                const has_audios = Object.keys(photo.audios).length
+                const vote_type     = session_context.data.project_info.thumbs === 2 ? "smilies" : "thumbs";
+                const vote_good     = photo.goodbad === 2 || photo.goodbad === 3 ? <span className={`icon ${vote_type} up`}>smile</span> : "";
+                const vote_bad      = photo.goodbad === 1 || photo.goodbad === 3 ? <span className={`icon ${vote_type} down`}>frown</span> : "";
+                const has_text      = photo.text_comment !== "" ? <span className={`icon keyboard`}>keyboard</span> : "";
+                const has_audios    = Object.keys(photo.audios).length
                     ? Object.keys(photo.audios).map((audio_name, idx) => {
                         return <Button
                             key={idx}
@@ -79,77 +79,102 @@ function SlideOut(props){
                         >{idx + 1}</Button>;
                     })
                     : "";
+
+                const audioPreloads = Object.keys(photo.audios).reduce((acc, audio_i) => {
+                    const audio_name    = doc_id + "_" + audio_i;
+                    acc[audio_name]     = getFileByName(files, audio_name);
+                    return acc;
+                }, {});
+
                 const has_tags = photo.hasOwnProperty("tags") && photo.tags.length ? <span className={`icon tags`}>{photo.tags.length}</span> : "";
 
                 return {
                     "photo_id": index,
                     "img_preview": img_preview,
-                    "photo_base64": photo_base64, // Store the base64 data here
+                    "photo_base64": photo_base64,
                     "vote_good": vote_good,
                     "vote_bad": vote_bad,
                     "has_text": has_text,
                     "has_audios": has_audios,
-                    "has_tags": has_tags
+                    "has_tags": has_tags,
+                    "audioPreloads" : audioPreloads
                 };
             });
 
-            // Save it to state
-            setWalkSumm(summ_preview);
+            return summ_preview;
         }
 
+        if (session_context.slideOpen) {
+            if (!session_context.data.in_walk && session_context.previewWalk) {
+                // Fetch and update data for preview walk
+                db_walks.walks.get(session_context.previewWalk).then(walk_preview => {
+                    const doc_id = walk_preview.project_id + "_" + walk_preview.user_id + "_" + walk_preview.timestamp;
+                    prepSummary(doc_id, walk_preview.photos).then(summ_preview => {
+                        setWalkSumm(summ_preview);
 
-        //TODO CONSOLIDATE THESE
-        if(!session_context.data.in_walk && session_context.previewWalk){
-            async function getWalkSummary(){
-                const walk_preview  = await db_walks.walks.get(session_context.previewWalk);
-                setSummProjectID(walk_preview.project_id);
-                setSummWalkID(walk_preview.walk_id);
+                        const allAudioPreloads = summ_preview.reduce((acc, item) => {
+                            return { ...acc, ...item.audioPreloads };
+                        }, {});
 
-                const doc_id    = walk_preview.project_id + "_" + walk_preview.user_id + "_" + walk_preview.timestamp;
-                prepSummary(doc_id, walk_preview.photos);
+                        console.log("summ_preview from uploadsumm", summ_preview);
+                        setWalkAudios(allAudioPreloads);
+                    });
+                });
+            } else if (walk_context.data.photos.length) {
+                // Fetch and update data for current walk
+                const walk = walk_context.data;
+                const doc_id = walk.project_id + "_" + walk.user_id + "_" + walk.timestamp;
+                prepSummary(doc_id, walk.photos).then(summ_preview => {
+                    setWalkSumm(summ_preview);
+
+                    const allAudioPreloads = summ_preview.reduce((acc, item) => {
+                        return { ...acc, ...item.audioPreloads };
+                    }, {});
+
+                    console.log("summ_preview current walk", summ_preview);
+                    setWalkAudios(allAudioPreloads);
+                });
             }
-            getWalkSummary();
         }
-
-        if(walk_context.data.photos.length){
-            const walk = walk_context.data;
-            setSummProjectID(walk.project_id);
-            setSummWalkID(walk.walk_id);
-
-            const doc_id = walk.project_id + "_" + walk.user_id + "_" + walk.timestamp ;
-            prepSummary(doc_id, walk.photos);
-        }
-    },[session_context.data.in_walk, session_context.data.project_info.thumbs, session_context.previewWalk, walk_context.data.photos, walkAudios]);
+    }, [session_context.slideOpen, session_context.data.in_walk, session_context.previewWalk, walk_context.data.photos]);
 
     const handleAudio = (e, audio_name) => {
-        //TODO ,THIS IS SAME CODE AS IN Photo_detail, maybe move it UP to context?... or?
         e.preventDefault();
-        if(e.target.classList.contains("playing")){
-            //if playing then stop and remove css
-            const audio = audioPlaying;
-            if(audio){
-                e.target.classList.remove('playing');
-                audio.pause();
-                audio.remove();
-            }
-            setAudioPlaying(null);
-        }else{
-            //if not playing then play, and add class "playing"
-            if(walkAudios.hasOwnProperty(audio_name)){
-                e.target.classList.add('playing');
-                const blob  = walkAudios[audio_name];
-                const url   = URL.createObjectURL(blob);
-                const audio = document.createElement('audio');
-                audio.src   = url;
-                audio.setAttribute('id', 'temporary_audioplayer');
-                audio.addEventListener("ended", () => {
-                    e.target.classList.remove('playing');
-                }, false);
-                audio.play();
-                setAudioPlaying(audio);
+        const audioElement = audioRef.current;
+        const currentWalkAudios = walkAudiosRef.current;
+
+        if (audioElement && currentWalkAudios.hasOwnProperty(audio_name)) {
+            const blob = currentWalkAudios[audio_name];
+
+            if (blob instanceof Blob) {
+                const url = URL.createObjectURL(blob);
+                console.log("is there walk audio?", audio_name, blob, currentWalkAudios, url);
+
+                if (audioElement.canPlayType(blob.type)) {
+                    e.target.classList.toggle('playing', !audioPlaying);
+                    if (audioPlaying) {
+                        audioElement.pause();
+                        setAudioPlaying(null);
+                    } else {
+                        audioElement.src = url;
+                        audioElement.play()
+                            .then(() => setAudioPlaying(audio_name))
+                            .catch(err => console.error("Error playing audio:", err));
+                    }
+
+                    audioElement.onended = () => {
+                        URL.revokeObjectURL(url);
+                        setAudioPlaying(null);
+                        e.target.classList.remove('playing');
+                    };
+                } else {
+                    console.error('Audio format not supported:', blob.type);
+                }
+            } else {
+                console.error('Invalid audio blob:', blob);
             }
         }
-    }
+    };
 
     const handleClose = () => {
         session_context.setSlideOpen(false);
@@ -209,6 +234,7 @@ function SlideOut(props){
 
                     { walkSumm.length ? <Button onClick={downloadPhotos}>Download All Photos & Audios</Button> : "" }
 
+                    <audio ref={audioRef} hidden></audio>
                 </div>
             </Slider>)
 }
