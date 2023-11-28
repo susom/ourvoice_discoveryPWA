@@ -62,7 +62,7 @@ function ViewBox(props){
             setObsCount(fcounts);
         }
 
-        console.log("PRECISE ON , no walk geo, but yes photo geo", walk_context.data.geotags, walk_context.data.photos);
+        // console.log("PRECISE ON , no walk geo, but yes photo geo", walk_context.data.geotags, walk_context.data.photos);
     }, [walk_context.data]);
 
 
