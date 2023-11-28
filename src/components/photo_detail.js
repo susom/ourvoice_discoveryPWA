@@ -188,8 +188,8 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
             }
         }
 
-        const upvote_val    = upVote ? 1 : 0;
-        const downvote_val  = downVote ? 2 : 0;
+        const upvote_val    = upVote ? 2 : 0;
+        const downvote_val  = downVote ? 1 : 0;
 
         const this_photo    = {
             "audios" : audio_names,
@@ -416,11 +416,11 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                                 <Row className="goodbad votes smilies">
                                     <Col xs={{span: 4}}><a href="/#"
                                                                       className={`vote up smilies ${upVote ? 'on' : ''} `}
-                                                                      onClick={(e) => voteClick(e, 1)}>up</a></Col>
+                                                                      onClick={(e) => voteClick(e, true)}>up</a></Col>
                                     <Col xs={{span: 4}} className="jointext">{choose_one_text}</Col>
                                     <Col xs={{span: 4}}><a href="/#"
                                                                       className={`vote down smilies ${downVote ? 'on' : ''}`}
-                                                                      onClick={(e) => voteClick(e, 0)}>down</a></Col>
+                                                                      onClick={(e) => voteClick(e, false)}>down</a></Col>
                                 </Row>
 
                                 <Row className="btns buttons">
