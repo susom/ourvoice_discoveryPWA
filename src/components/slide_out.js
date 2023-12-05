@@ -9,7 +9,7 @@ import { XCircle } from 'react-bootstrap-icons';
 import { SessionContext } from "../contexts/Session";
 import { WalkContext } from "../contexts/Walk";
 import { db_walks, db_files } from "../database/db";
-import { buildFileArr, shallowMerge, getFileByName } from "./util";
+import {buildFileArr, shallowMerge, getFileByName, updateContext} from "./util";
 
 import "../assets/css/slideout.css";
 
@@ -196,6 +196,12 @@ function SlideOut(props){
         for (const [audioName, audioBlob] of Object.entries(walkAudios)) {
             audioFolder.file(`${audioName}`, audioBlob, { binary: true });
         }
+
+        // Prepare walk metadata as JSON
+        const walkMetadata = await db_walks.walks.get(session_context.previewWalk);
+        const metadataStr = JSON.stringify(walkMetadata, null, 2); // Convert to a formatted JSON string
+        const metadataBlob = new Blob([metadataStr], { type: "application/json" });
+        zip.file("walk_metadata.json", metadataBlob); // Add metadata JSON to the zip
 
         // Generate zip and trigger download
         zip.generateAsync({ type: "blob" }).then(blob => {
