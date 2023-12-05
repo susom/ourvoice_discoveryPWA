@@ -1,9 +1,10 @@
 import { useEffect, useState, useContext } from "react";
 import { Container, Row, Col } from 'react-bootstrap';
-import { CloudUploadFill, CloudUpload, CloudSlashFill, CloudArrowUpFill} from 'react-bootstrap-icons';
+import { CloudUploadFill, CloudUpload, CloudSlashFill, CloudArrowUpFill, ArrowCounterclockwise} from 'react-bootstrap-icons';
 
 import {db_files, db_logs, db_project, db_walks} from "../../database/db";
 import {SessionContext} from "../../contexts/Session";
+import {syncData} from "../../database/SyncManager";
 
 import {tsToYmd, updateContext} from "../../components/util";
 
@@ -27,6 +28,8 @@ function renderStatusIcon(item) {
 function ViewBox(props){
     const [walks, setWalks] = useState(props.walks);
     const session_context   = useContext(SessionContext);
+    const [activeResets, setActiveResets] = useState({});
+
 
     useEffect(() => {
         setWalks(props.walks);
@@ -76,6 +79,36 @@ function ViewBox(props){
         return count;
     }
 
+    // Function to handle resetting the walk status
+    const handleResetWalkStatus = async (walkId) => {
+        try {
+            const walk = await db_walks.walks.get(walkId);
+            if (walk) {
+                walk.complete   = 1;
+                walk.uploaded   = 0;
+                walk.status     = "PENDING";
+
+                await db_walks.walks.put(walk);
+
+                // Update the UI to reflect the change
+                setWalks((prevWalks) =>
+                    prevWalks.map((w) => (w.id === walkId ? { ...w, complete: 1, uploaded: 0, status: "PENDING" } : w))
+                );
+
+                // Update the state to reflect the new status of the arrow with this id
+                setActiveResets(prevState => ({
+                    ...prevState,
+                    [walkId]: true
+                }));
+
+                // syncData(); // start syncing right away
+                console.log("reseting walk and syncing data again",walk );
+            }
+        } catch (error) {
+            console.error(`Error resetting walk status for ID: ${walkId}:`, error);
+        }
+    };
+
     return (
 
             <Container className="content upload">
@@ -124,7 +157,9 @@ function ViewBox(props){
                                 </td>
                                 <td>{item.photos.length}</td>
                                 <td>{countAudios(item.photos) + countTexts(item.photos)}</td>
-                                <td>{renderStatusIcon(item)}</td>
+                                <td>{renderStatusIcon(item)} <ArrowCounterclockwise
+                                    className={activeResets[item.id] ? 'reset_active' : 'reset_default'}
+                                    onClick={() => handleResetWalkStatus(item.id)}></ArrowCounterclockwise></td>
                             </tr>
                         );
                     })}
@@ -163,7 +198,6 @@ export function Upload(){
         walks_col.count().then(count => {
             if (count > 0) {
                 walks_col.toArray(( arr_data) => {
-                    console.log(count, "walks");
                     setWalks(arr_data);
                 });
             }else{

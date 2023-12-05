@@ -97,3 +97,11 @@
 .color_in_progress {
     animation: pulsate 1.5s infinite ease-in-out;
 }
+
+.reset_default {
+    color: #A5A5A5;
+}
+
+.reset_active {
+    color: purple;
+}

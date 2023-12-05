@@ -75,62 +75,62 @@ async function batchPushToFirestore(walk_data) {
 
     // Filter out already uploaded or incomplete walks
     const filteredWalkData = walk_data.filter(item => !item.uploaded && item.complete);
+    console.log(`Filtered walks to be processed:`, filteredWalkData);
 
     for (const item of filteredWalkData) {
-        updateWalkStatus(item, "IN_PROGRESS"); // Update status
+        try {
+            await updateWalkStatus(item, "IN_PROGRESS");
 
-        // Prepare the document data
-        const doc_id = item.project_id + "_" + item.user_id + "_" + item.timestamp;
-        const doc_data = {
-            "device": item.device,
-            "lang": item.lang,
-            "project_id": item.project_id,
-            "timestamp": item.timestamp,
-            "photos": item.photos
-        };
+            // Prepare the document data
+            const doc_id = item.project_id + "_" + item.user_id + "_" + item.timestamp;
+            const doc_data = {
+                "device": item.device,
+                "lang": item.lang,
+                "project_id": item.project_id,
+                "timestamp": item.timestamp,
+                "photos": item.photos
+            };
 
-        // Create a document reference
-        const doc_ref = doc(firestore, "ov_walks", doc_id);
+            const doc_ref = doc(firestore, "ov_walks", doc_id);
 
-        // Create a subcollection reference under the document
-        const geotags = item.geotags;
-        const sub_ref = collection(doc_ref, "geotags");
-        geotags.forEach((geotag, index) => {
-            const subid = (index + 1).toString();
-            setDoc(doc(sub_ref, subid), { geotag })
-                .then(() => {
-                    console.log(`Document written with ID: ${subid}`);
-                })
-                .catch((error) => {
-                    console.error(`Error adding document: ${error}`);
-                });
-        });
+            // Log the doc_data for inspection before updating Firestore
+            // console.log(`Data for doc_id ${doc_id}:`, doc_data);
 
-        // Add the main document to the batch
-        batch.set(doc_ref, doc_data);
+            batch.set(doc_ref, doc_data);
 
-        // Build an array of file names to be uploaded to Cloud Storage
-        files_arr = [...files_arr, ...buildFileArr(doc_id, item.photos)];
+            const geotags = item.geotags;
+            const sub_ref = collection(doc_ref, "geotags");
 
-        // Commit the batch
-        await batch.commit()
-            .then(() => {
-                updateWalkStatus(item, "COMPLETE", 1); // Update status
-            })
-            .catch((error) => {
-                updateWalkStatus(item, "ERROR"); // Update status
-            });
+            for (const [index, geotag] of geotags.entries()) {
+                const subid = (index + 1).toString();
+                await setDoc(doc(sub_ref, subid), { geotag });
+            }
+
+            await batch.commit();
+
+            console.log(`Firestore batch commit successful for walk ID: ${item.id}`);
+            await updateWalkStatus(item, "COMPLETE", 1);
+            files_arr = [...files_arr, ...buildFileArr(doc_id, item.photos)];
+
+        } catch (error) {
+            console.error(`Error processing walk ID ${item.id}:`, error);
+            await updateWalkStatus(item, "ERROR");
+            // Implement a mechanism to handle individual walk failures here
+        }
 
         // Upload files
-        await uploadFiles(files_arr);
-
-        // Trigger the custom event after the files are uploaded
-        window.dispatchEvent(new Event('indexedDBChange'));
+        try {
+            await uploadFiles(files_arr);
+        } catch (error) {
+            console.error(`Error uploading files for walk ID ${item.id}:`, error);
+            // Consider how to handle file upload errors here, possibly marking the walk as incomplete
+        }
 
         // Update IndexedDB status after files are uploaded
         await bulkUpdateDb(db_walks, "walks", update_records);
     }
 }
+
 
 
 
@@ -160,8 +160,7 @@ export async function syncData() {
                 const count = await walks_col.count();
 
                 if (count > 0) {
-                    console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
-
+                    // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
                     const arr_data = await walks_col.toArray();
                     await batchPushToFirestore(arr_data);
                 } else {
