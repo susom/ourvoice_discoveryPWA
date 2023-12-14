@@ -1,6 +1,7 @@
 {
   "short_name": "Our Voice",
   "name": "Our Voice Discovery Tool",
+  "description": "The Discovery Tool is intended to be used by our citizen scientists to map and record observations in their local environments with regards to public health equity",
   "icons": [
     {
       "src": "android/android-launchericon-512-512.png",
@@ -132,8 +133,9 @@
     }
   ],
   "start_url": ".",
+  "scope" : "/",
   "display": "standalone",
-  "orientation": "portrait", // or "landscape"
+  "orientation": "portrait",
   "theme_color": "#000000",
   "background_color": "#ffffff"
 }

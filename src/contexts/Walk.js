@@ -13,6 +13,7 @@ const context_init = {
     ,timestamp  : null
     ,uploaded   : 0
     ,complete   : 0
+    ,status     : 'PENDING' // can be 'PENDING', 'COMPLETE', 'IN_PROGRESS', or 'ERROR'
 }
 
 export const WalkContext = createContext({
@@ -21,9 +22,11 @@ export const WalkContext = createContext({
 });
 
 export const WalkContextProvider = ({children}) => {
-    const clean_obj                     = cloneDeep(context_init);
-    const [data, setData]               = useState(clean_obj);
-    const [photoCount, setPhotoCount]   = useState(0);
+    const clean_obj                         = cloneDeep(context_init);
+    const [data, setData]                   = useState(clean_obj);
+    const [photoCount, setPhotoCount]       = useState(0);
+    const [takePhoto, setTakePhoto]         = useState(false);
+    const [cameraLoaded, setCameraLoaded]   = useState(false);
 
     const resetData = () => {
         const clean_obj     = cloneDeep(context_init);
@@ -32,7 +35,7 @@ export const WalkContextProvider = ({children}) => {
     }
 
     return (
-        <WalkContext.Provider value={{data, setData, resetData, photoCount, setPhotoCount}}>
+        <WalkContext.Provider value={{data, setData, resetData, photoCount, setPhotoCount, takePhoto, setTakePhoto, cameraLoaded, setCameraLoaded}}>
             {children}
         </WalkContext.Provider>
     );

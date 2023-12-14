@@ -1,6 +1,6 @@
-import { useState, useContext, useEffect } from "react";
-import Camera from 'react-html5-camera-photo';
-import 'react-html5-camera-photo/build/css/index.css';
+import { useState, useContext, useEffect, useRef , useCallback} from "react";
+import Webcam from "react-webcam";
+
 import PermissionModal from './device_permisssions';
 
 import { Container, Row, Col, Button } from 'react-bootstrap';
@@ -19,17 +19,21 @@ function WalkStart(props) {
     const walk_context      = useContext(WalkContext);
     const walkmap_context   = useContext(WalkmapContext);
 
-    const [takePhoto, setTakePhoto]                 = useState(false);
-    const [cameraLoaded, setCameraLoaded]           = useState(false);
+    const {takePhoto, setTakePhoto}                 = useContext(WalkContext);
+    const {cameraLoaded, setCameraLoaded}           = useContext(WalkContext);
     const [customPhotoPrompt, setCustomPhotoPrompt] = useState("");
+
+    const [cameraError, setCameraError] = useState(null);
 
     useEffect(() => {
         setCustomPhotoPrompt(session_context.data.project_info.custom_take_photo_text);
     }, [session_context.data.project_info.custom_take_photo_text]);
 
-    useEffect(() => {
-        walkmap_context.startGeoTracking();
-    }, []);
+    const initGeoTracking = (permissionGranted) => {
+        if(permissionGranted) {
+            walkmap_context.startGeoTracking();
+        }
+    };
 
     const takePhotoHandler = (e) => {
         e.preventDefault();
@@ -40,7 +44,6 @@ function WalkStart(props) {
         const walk_geos = walk_context.data.geotags.concat(walkmap_context.data);
         updateContext(walk_context, { "geotags": walk_geos });
 
-        //reset walkmap data length to 0;
         walkmap_context.data.length = 0;
         walkmap_context.setData(walkmap_context.data);
 
@@ -57,6 +60,15 @@ function WalkStart(props) {
         update_walk();
     }
 
+    const webcamRef = useRef(null);
+    const capture   = useCallback(
+        () => {
+            const imageSrc = webcamRef.current.getScreenshot();
+            props.handleTakePhoto(imageSrc);
+        },
+        [webcamRef, props]
+    );
+
     const take_photo_text   = session_context.getTranslation("take_photo");
     const take_another_text = session_context.getTranslation("take_another");
     const done_walk_text    = session_context.getTranslation("done_walk");
@@ -64,20 +76,78 @@ function WalkStart(props) {
     return (
         (takePhoto) ?
             <>
-                {
-                    !cameraLoaded && (<div className="react-html5-camera-photo "><img className={`loading_photo_ui`} src={loading_photo_ui_boring} alt={`loading UI`} /></div>)
-                }
-                <Camera
-                    onTakePhoto={props.handleTakePhoto}
-                    idealFacingMode="environment" // Prioritize the back camera
-                    onCameraStart={() => setCameraLoaded(true)}
-                />
+                {takePhoto && cameraError && <div className="error">{cameraError}</div>}
+                {!cameraLoaded && (
+                    <div className="loading-container">
+                        <img src={loading_photo_ui_boring} alt="Loading..." />
+                    </div>
+                )}
+                {takePhoto && !cameraError && <Webcam
+                    audio={false}  // Captures audio along with video
+                    screenshotFormat="image/jpeg"
+                    videoConstraints={{
+                        width: 1280,
+                        height: 720,
+                        aspectRatio: 16/9,  // (optional)
+                        facingMode: "environment",  // prioritize back camera
+                        frameRate: 30  // (optional)
+                    }}
+                    onUserMedia={() => {
+                        setCameraLoaded(true);
+                        console.log("Webcam media stream loaded");
+                    }}
+                    onUserMediaError={(error) => {  // Callback on media stream error
+                        switch(error.name) {
+                            case "NotAllowedError":
+                                console.error("User has denied camera/microphone permissions.");
+                                break;
+                            case "NotFoundError":
+                                console.error("No camera/microphone found or user denied permission.");
+                                break;
+                            case "NotReadableError":
+                                console.error("Unable to access the camera/microphone due to hardware or OS issue.");
+                                break;
+                            case "OverconstrainedError":
+                                console.error("Constraints don't match any installed camera/microphone.");
+                                break;
+                            case "TypeError":
+                                console.error("Invalid constraints provided.");
+                                break;
+                            default:
+                                console.error("Webcam media stream error:", error);
+                                break;
+                        }
+                    }}
+                    className="webcam-style"
+                    ref={webcamRef}
+                />}
+
+                <div className="camera-button-container">
+                    <button
+                        onClick={() => {
+                            setCameraLoaded(false);
+                            setTakePhoto(!takePhoto);
+                        }}
+                        className="btn cancel-button">
+                        <b>Cancel</b>
+                    </button>
+                    <button
+                        className="capture-button"
+                        onClick={capture}>
+                        Take Photo
+                    </button>
+                </div>
+
+
             </>
             :
             <Container className="content walk walk_start" >
                 <Row id="walk_start" className="panel">
                     <Col className="content">
-                        <PermissionModal permissionNames={["camera","geo"]} onPermissionGranted={walkmap_context.startGeoTracking} />
+                        <PermissionModal
+                            permissionNames={["camera","geo"]}
+                            onPermissionChanged={initGeoTracking}
+                        />
 
                         <Container>
                             <Row>

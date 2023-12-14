@@ -3,6 +3,7 @@
     max-width:90%;
 }
 
+.close_permissions_modal,
 .close_slider {
     position:absolute;
     top:10px;

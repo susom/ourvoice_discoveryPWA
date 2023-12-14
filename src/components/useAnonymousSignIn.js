@@ -10,7 +10,7 @@ const useAnonymousSignIn = () => {
             try {
                 if(!auth.currentUser){
                     await signInAnonymously(auth);
-                    console.log("anonymous sign in!!");
+                    // console.log("anonymous sign in!!");
                     setIsAuthenticated(true);
                 }
             } catch (error) {

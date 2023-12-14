@@ -88,3 +88,10 @@
 .summary .continuewalk{
     background:#105881;
 }
+
+.map_err_msg {
+    height:200px;
+    min-width:auto;
+    padding:80px;
+    line-height:115%;
+}

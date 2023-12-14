@@ -1,18 +1,35 @@
 import { useEffect, useState, useContext } from "react";
 import { Container, Row, Col } from 'react-bootstrap';
-import { CloudUploadFill, CloudUpload} from 'react-bootstrap-icons';
+import { CloudUploadFill, CloudUpload, CloudSlashFill, CloudArrowUpFill, ArrowCounterclockwise} from 'react-bootstrap-icons';
 
 import {db_files, db_logs, db_project, db_walks} from "../../database/db";
 import {SessionContext} from "../../contexts/Session";
+import {syncData} from "../../database/SyncManager";
 
 import {tsToYmd, updateContext} from "../../components/util";
 
 import "../../assets/css/view_upload.css";
 import icon_camera_black from "../../assets/images/icon_camera_black.png";
 import icon_audio_comment_black from "../../assets/images/icon_audio_comment_black.png";
+
+function renderStatusIcon(item) {
+    const status = item.status;
+
+    switch(status) {
+        case 'IN_PROGRESS':
+            return <CloudArrowUpFill className={'color_in_progress'}/>; // Use a different color class for in-progress
+        case 'COMPLETE':
+            return <CloudUploadFill className={'color_success'}/>;
+        default:
+            return <CloudUpload className={'color_pending'}/>;
+    }
+}
+
 function ViewBox(props){
     const [walks, setWalks] = useState(props.walks);
     const session_context   = useContext(SessionContext);
+    const [activeResets, setActiveResets] = useState({});
+
 
     useEffect(() => {
         setWalks(props.walks);
@@ -21,6 +38,8 @@ function ViewBox(props){
     const instructions_upload_text  = session_context.getTranslation("instructions_upload");
     const data_uploaded_text        = session_context.getTranslation("data_uploaded");
     const data_pending_text         = session_context.getTranslation("data_pending");
+    const data_in_progress          = session_context.getTranslation("data_in_progress");
+    const data_error                = session_context.getTranslation("data_error");
     const date_text                 = session_context.getTranslation("date");
     const project_text              = session_context.getTranslation("project");
     const id_text                   = session_context.getTranslation("walk_id");
@@ -60,6 +79,36 @@ function ViewBox(props){
         return count;
     }
 
+    // Function to handle resetting the walk status
+    const handleResetWalkStatus = async (walkId) => {
+        try {
+            const walk = await db_walks.walks.get(walkId);
+            if (walk) {
+                walk.complete   = 1;
+                walk.uploaded   = 0;
+                walk.status     = "PENDING";
+
+                await db_walks.walks.put(walk);
+
+                // Update the UI to reflect the change
+                setWalks((prevWalks) =>
+                    prevWalks.map((w) => (w.id === walkId ? { ...w, complete: 1, uploaded: 0, status: "PENDING" } : w))
+                );
+
+                // Update the state to reflect the new status of the arrow with this id
+                setActiveResets(prevState => ({
+                    ...prevState,
+                    [walkId]: true
+                }));
+
+                // syncData(); // start syncing right away
+                console.log("reseting walk and syncing data again",walk );
+            }
+        } catch (error) {
+            console.error(`Error resetting walk status for ID: ${walkId}:`, error);
+        }
+    };
+
     return (
 
             <Container className="content upload">
@@ -68,44 +117,55 @@ function ViewBox(props){
                         <p className="instructions_upload">
                             <span>{instructions_upload_text}</span>
                         </p>
-                        <span><CloudUploadFill className={`color_success`}/> {data_uploaded_text}</span> <span> | </span> <span><CloudUpload className={`color_pending`}/> {data_pending_text}</span>
+
+                        <div className={`upload_legend`}>
+                            <span><CloudUpload className={`color_pending`}/> <i>{data_pending_text}</i></span>
+                            <span> | </span>
+                            <span><CloudArrowUpFill className={`color_in_progress`}/> <i>{data_in_progress}</i></span>
+                            <span> | </span>
+                            <span><CloudUploadFill className={`color_success`}/> <i>{data_uploaded_text}</i></span>
+                        </div>
                     </Col>
                 </Row>
 
-                <Row className={`table_header`}>
-                    <Col sm={{span:2}} xs={{span:2}}><span>{date_text}</span></Col>
-                    <Col sm={{span:2}} xs={{span:2}}><span>{project_text}</span></Col>
-                    <Col sm={{span:2}} xs={{span:2}}><span>{id_text}</span></Col>
-                    <Col sm={{span:2}} xs={{span:2}}><span><img alt='' className={`hdr_icon`} src={icon_camera_black}/></span></Col>
-                    <Col sm={{span:2}} xs={{span:2}}><span><img alt='' className={`hdr_icon`} src={icon_audio_comment_black}/></span></Col>
-                    <Col sm={{span:2}} xs={{span:2}}><span>{status_text}</span></Col>
-                </Row>
+                <table className={`upload_table`} >
+                    <thead>
+                    <tr className="table_header" >
+                        <th>{date_text}</th>
+                        <th>{project_text}</th>
+                        <th>{id_text}</th>
+                        <th><img alt="" className="hdr_icon" src={icon_camera_black} /></th>
+                        <th><img alt="" className="hdr_icon" src={icon_audio_comment_black} /></th>
+                        <th>{status_text}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {walks.map((item) => {
+                        if (!item.photos.length) {
+                            return false;
+                        }
+                        return (
+                            <tr className="table_row list_data" key={item.id} >
+                                <td>{tsToYmd(item.timestamp)}</td>
+                                <td>{item.project_id}</td>
+                                <td className="walkid" onClick={(e) => {
+                                    e.preventDefault();
+                                    session_context.setPreviewWalk(item.id);
+                                    session_context.setSlideOpen(true);
+                                }}>
+                                    {item.walk_id}
+                                </td>
+                                <td>{item.photos.length}</td>
+                                <td>{countAudios(item.photos) + countTexts(item.photos)}</td>
+                                <td>{renderStatusIcon(item)} <ArrowCounterclockwise
+                                    className={activeResets[item.id] ? 'reset_active' : 'reset_default'}
+                                    onClick={() => handleResetWalkStatus(item.id)}></ArrowCounterclockwise></td>
+                            </tr>
+                        );
+                    })}
+                    </tbody>
+                </table>
 
-                {walks.map(item => {
-                    if(!item.photos.length){
-                        return false;
-                    }
-                    return (
-                        <Row className={`table_row list_data`} key={item.id}>
-                            <Col sm={{span:2}}  xs={{span:2}}>{tsToYmd(item.timestamp)}</Col>
-                            <Col sm={{span:2}}  xs={{span:2}}>{item.project_id}</Col>
-                            <Col sm={{span:2}}  xs={{span:2}} className={`walkid`} onClick={(e) => {
-                                e.preventDefault();
-                                session_context.setPreviewWalk(item.id);
-                                session_context.setSlideOpen(true);
-                            }}>{item.walk_id}</Col>
-                            <Col sm={{span:2}}  xs={{span:2}}>{item.photos.length}</Col>
-                            <Col sm={{span:2}}  xs={{span:2}}>{countAudios(item.photos) + countTexts(item.photos)}</Col>
-                            <Col sm={{span:2}}  xs={{span:2}}>{item.uploaded ? <CloudUploadFill className={'color_success'}/> : <CloudUpload className={'color_pending'}/>}</Col>
-                        </Row>
-                    )
-                })}
-
-                <Row className={`btn_row`}>
-                    <Col>
-                        <button className={`btn btn-danger`} onClick={clearLocal}>{delete_stored_text}</button>
-                    </Col>
-                </Row>
             </Container>
 
     )
@@ -138,7 +198,6 @@ export function Upload(){
         walks_col.count().then(count => {
             if (count > 0) {
                 walks_col.toArray(( arr_data) => {
-                    console.log(count, "walks");
                     setWalks(arr_data);
                 });
             }else{

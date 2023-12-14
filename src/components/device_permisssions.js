@@ -1,22 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import usePermissions from './usePermissions';
 import PermissionButton from './PermissionButton';
-import {db_project} from "../database/db";
 import {getDeviceType} from "./util";
-
-import {Lock, MicFill, CameraVideoFill, GeoAltFill } from "react-bootstrap-icons";
+import {useNavigate} from 'react-router-dom';
+import {Lock, MicFill, CameraVideoFill, GeoAltFill , XCircle} from "react-bootstrap-icons";
 import {Modal} from "react-bootstrap";
 
-import "../assets/css/permissions.css"; // Importing the CSS file
+import "../assets/css/permissions.css";
 
-function PermissionModal({ permissionNames }) {
+function PermissionModal({ permissionNames , closeModal, onPermissionChanged, setShowAudioPermissionModal}) {
     const [permissions, loading, requestPermission, setPermissions] = usePermissions();
+    const [modalIsOpen, setIsOpen] = useState(false);
 
-    const [modalIsOpen, setIsOpen]  = useState(false);
-    const loadingPermissions        = Object.values(loading).some(v => v);
-    const deniedPermissions         = permissionNames.filter(permissionName => permissions[permissionName] === "denied");
-    const deniedPermissionsString   = deniedPermissions.join(', ');
-    const device_type               = getDeviceType();
+    const loadingPermissions = Object.values(loading).some(v => v);
+    const deniedPermissions = permissionNames.filter(permissionName => permissions[permissionName] === "denied");
+    const deniedPermissionsString = deniedPermissions.join(', ');
+    const device_type = getDeviceType();
 
     const permission_messaging = {
         "camera" : {"msg" : "The app requires use of the camera for taking photos of neighborhood features", "icon" : <CameraVideoFill size={40}/> },
@@ -24,98 +23,147 @@ function PermissionModal({ permissionNames }) {
         "geo" : {"msg" : "The app requires use of the geolocation data for mapping walks around the neighborhood", "icon" : <GeoAltFill size={40}/> },
     }
 
-    const resetDbPermissions = async () => {
-        const initialPermissionsState = {
-            camera: "prompt",
-            audio: "prompt",
-            geo: "prompt",
-        };
+    useEffect(() => {
+        if (loadingPermissions) return;
 
-        try {
-            await db_project.permissions.update(1, initialPermissionsState);
-            setPermissions(initialPermissionsState); // update the local state
-            console.log("Permissions reset successful");
-        } catch (error) {
-            console.error("Could not reset permissions:", error);
+        const deniedPermissions         = permissionNames.filter(permissionName => permissions[permissionName] === "denied");
+        const isPermissionNotGranted    = deniedPermissions.length > 0 || permissionNames.some(permissionName => permissions[permissionName] !== "granted");
+
+        // Control Modal Open State
+        setIsOpen(isPermissionNotGranted);
+    }, [permissionNames, permissions, loadingPermissions]);
+
+    // Sync it with the current onPermissionChanged function prop
+    useEffect(() => {
+        onPermissionChangedRef.current = onPermissionChanged;
+    }, [onPermissionChanged]);
+
+    useEffect(() => {
+        if (loadingPermissions) return;
+
+        const deniedPermissions         = permissionNames.filter(permissionName => permissions[permissionName] === "denied");
+        const isPermissionNotGranted    = deniedPermissions.length > 0 || permissionNames.some(permissionName => permissions[permissionName] !== "granted");
+
+        if (onPermissionChangedRef.current) {
+            onPermissionChangedRef.current(!isPermissionNotGranted);
+        }
+    }, [permissionNames, permissions, loadingPermissions]);
+
+    // Create a ref
+    const onPermissionChangedRef = useRef(null);
+
+    const handleButtonClick = () => {
+        console.log("permissions, deniedPermissions",permissions, deniedPermissions);
+        if (!deniedPermissions.includes("geo") && !deniedPermissions.includes("camera") && permissions["geo"] !== "prompt" &&  permissions["camera"] !== "prompt") {
+            setIsOpen(false);
+            if (typeof closeModal === 'function') { // Check if closeModal exists and is a function
+                closeModal();
+            }
+        } else {
+            navigate("/home");
         }
     };
 
-    useEffect(() => {
-        if (!loadingPermissions) {
-            const isPermissionNotGranted = deniedPermissions.length > 0 || permissionNames.some(permissionName => permissions[permissionName] !== "granted");
-            setIsOpen(isPermissionNotGranted);
-        }
-    }, [deniedPermissions, permissionNames, permissions, loadingPermissions]);
+    const navigate = useNavigate();
+    const capitalizeFirstChar = str => `${str[0].toUpperCase()}${str.slice(1)}`;
 
     return (
         <Modal
             show={modalIsOpen}
-            onHide={() => setIsOpen(false)}
+            onHide={handleButtonClick}
             className="permissions_spotCheck"
         >
             <Modal.Header>
                 <Modal.Title>Required Device Permissions</Modal.Title>
+                <XCircle className={`close_permissions_modal`} color="#bbb" size={30} onClick={handleButtonClick}/>
             </Modal.Header>
 
             <Modal.Body>
                 {deniedPermissions.length > 0 && (
                     <div>
-                        <p>The {deniedPermissionsString} permission(s) have been denied. They can be re-enabled by following these steps:</p>
+                        <p>Essential {deniedPermissionsString} permission(s) have been denied. To re-enable:</p>
 
-                        <h5>If Installed to Home Screen:</h5>
+                        {device_type === 'Android' ? (
+                            <>
+                                <h5>1) On Android with Chrome:</h5>
+                                <ul>
+                                    <li>Tap the lock icon beside the URL.</li>
+                                    <li>Select "Site Settings".</li>
+                                    <li>Go to "Permissions".</li>
+                                    <li>Set each required permission to "Allow".</li>
+                                </ul>
+                            </>
+                        ) : (
+                            <>
+                                <h5>1) On iOS with Safari:</h5>
+                                {deniedPermissions.includes('geo') && (
+                                    <>
+                                        <em>IOS GeoData permissions have 2 levels of permissions; System and App</em>
+                                        <ul>
+                                            <li>For System Level GEO Permissions : Go to device "Settings" -> "Privacy & Security" -> "Location Services"</li>
+                                            <li>Ensure that the toggle is green and click into it</li>
+                                            <li>Scroll down to "Safari Websites"</li>
+                                            <li>Adjust Permissions:
+                                                <ul>
+                                                <li>Ensure that "While Using the App" is checked</li>
+                                                <li>Ensure that "Precise Location" is toggled on (green)</li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </>
+                                )}
+                                <ul>
+                                    <li>For app level Permissions : Go to device "Settings".</li>
+                                    <li>Scroll down to "Safari".</li>
+                                    <li>Scroll down and find "Settings for Websites".</li>
+                                    <li>Tap "Clear History and Website Data".</li>
+                                    <li>Adjust Permissions:
+                                        <ul>
+                                            <li>If Our Voice app is listed, remove it.</li>
+                                            <li>Set permissions to "Ask" or "Allow".</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </>
+                        )}
+
+                        <h5>2) If app was previously installed:</h5>
+                        <p>After adjusting browser permissions:</p>
                         <ul>
-                            <li>Delete app from home screen and reinstall it from a browser</li>
+                            <li>Delete Our Voice app from home screen.</li>
+                            <li>Reinstall via web browser.</li>
                         </ul>
 
-                        <h5>If in Browser:</h5>
-                        <ul>
-                            {device_type === 'Android' ?
-                                (<li>
-                                    <h6>On Chrome</h6>
-                                    <ul>
-                                        <li>Click on the "lock" icon in the browser bar</li>
-                                        <li>Click on "Permissions"</li>
-                                        <li>Click on "Reset Permissions"</li>
-                                    </ul>
-                                </li>) :
-                                (<li>
-                                    <h6>On Safari</h6>
-                                    <ul>
-                                        <li>In the device "Settings" app</li>
-                                        <li>Scroll down to and click on Safari</li>
-                                        <li>Scroll down to "Settings for Websites" section</li>
-                                        <li>Click on the individual Settings (eg "Camera") and ...
-                                            <ul>
-                                                <li>Delete the OurVoice website from the list...</li>
-                                                <li>Or If there is no website list, simply reset the permission to "Ask"</li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>)
-                            }
-                            <li>If you have followed the instructions above and still see this message, click this button :
-                                <button className="reset_permissions_db btn btn-warning btn-sm" onClick={resetDbPermissions}>
-                                    Reset permissions
-                                </button></li>
-                        </ul>
+                        <p>Doing so should re-enable the required permissions for Our Voice.</p>
                     </div>
                 )}
                 <div className="permissions">
-                    {permissionNames.map(permissionName => (
-                        permissions[permissionName] !== "denied" && (
-                            <div key={permissionName}>
-                                <PermissionButton
-                                    permissionName={permissionName}
-                                    isGranted={permissions[permissionName] === "granted"}
-                                    isLoading={loading[permissionName]}
-                                    onGrant={() => requestPermission(permissionName)}
-                                    iconGranted={permission_messaging[permissionName]["icon"]}
-                                    iconLocked={<Lock size={40}/>}
-                                    description={permission_messaging[permissionName]["msg"]}
-                                />
-                            </div>
+                    {permissionNames.map((permissionName) => {
+                        return (
+                            permissions[permissionName] !== "denied" && (
+                                <div key={permissionName}>
+                                    <PermissionButton
+                                        permissionName={permissionName}
+                                        isGranted={permissions[permissionName] === "granted"}
+                                        isLoading={loading[permissionName]}
+                                        onGrant={() => {
+                                            requestPermission(permissionName).then(result => {
+                                                if (permissionName === 'geo' && result === "granted") {
+                                                    onPermissionChanged(true);
+                                                }
+                                            });
+                                        }}
+
+                                        iconGranted={permission_messaging[permissionName]["icon"]}
+                                        iconLocked={<Lock size={40}/>}
+                                        description={permissions[permissionName] === "granted"
+                                            ? capitalizeFirstChar(permissionName) + " Permission Granted"
+                                            : permission_messaging[permissionName]["msg"]}
+                                    />
+                                </div>
+                            )
                         )
-                    ))}
+                    })}
                 </div>
             </Modal.Body>
         </Modal>

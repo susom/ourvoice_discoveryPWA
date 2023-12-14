@@ -1,11 +1,11 @@
-import {useEffect, useState, useContext } from "react";
+import {useEffect, useState, useContext, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from 'react-bootstrap';
 
 import {db_walks, db_project, db_files, db_logs} from "../../database/db";
 import { collection, getDocs, collectionGroup, doc,  where, query } from "firebase/firestore";
 import {firestore, auth} from "../../database/Firebase";
-
+import {syncData} from "../../database/SyncManager";
 
 import {WalkmapContext} from "../../contexts/Walkmap";
 import {SessionContext} from "../../contexts/Session";
@@ -17,7 +17,6 @@ import HomeLead from "../../components/home_lead";
 import {updateContext, tsDiffInHours} from "../../components/util";
 
 import "../../assets/css/view_home.css";
-import PermissionModal from '../../components/device_permisssions';
 
 function ViewProjectDetails(props){
     const session_context           = useContext(SessionContext);
@@ -34,8 +33,10 @@ function ViewProjectDetails(props){
 
 
     async function checkLogin(){
+        let upperCasePcode = props.pcode.toUpperCase();
+
         const q = query(collection(firestore, "ov_projects")
-            , where("code", "==", props.pcode)
+            , where("code", "==", upperCasePcode)
             , where("project_pass", "==", props.pword)
         );
 
@@ -51,7 +52,7 @@ function ViewProjectDetails(props){
                         props.projectSignInOut(true);
 
                         const active_project_data = {
-                            project_id              : props.pcode,
+                            project_id              : upperCasePcode,
                             audio_comments          : parseInt(doc.get("audio_comments")),
                             custom_take_photo_text  : doc.get("custom_take_photo_text"),
                             expire_date             : doc.get("expire_date"),
@@ -64,7 +65,8 @@ function ViewProjectDetails(props){
                             text_comments           : parseInt(doc.get("text_comments")),
                             thumbs                  : parseInt(doc.get("thumbs")),
                             ov_meta                 : session_context.translations,
-                            timestamp               : Date.now()
+                            timestamp               : Date.now(),
+                            current_language        : "en"
                         };
 
                         setLanguage(active_project_data.languages);
@@ -79,7 +81,7 @@ function ViewProjectDetails(props){
             });
         }else{
             setStatus("Invalid Project Id or Project Passcode");
-            props.setAlertMessage({"title" : "Pleas try again", "body" : "Wrong Project ID or Passcode", "cancel_txt" : "Close" , "ok_txt" : ""});
+            props.setAlertMessage({"title" : "Please try again", "body" : "Wrong Project ID or Passcode", "cancel_txt" : "Close" , "ok_txt" : ""});
             props.setShowModal(true);
             props.setPword("");
         }
@@ -103,9 +105,11 @@ function ViewProjectDetails(props){
     const getPostInfo = async (e) => {
         e.preventDefault();
 
-        if(props.pcode !== "" && props.pword !== ""){
+        let upperCasePcode = props.pcode.toUpperCase();
 
-            const active_project = db_project.active_project.where({project_id: props.pcode}).first();
+        if(upperCasePcode !== "" && props.pword !== ""){
+
+            const active_project = db_project.active_project.where({project_id: upperCasePcode}).first();
             active_project.then(async function(project_data) {
                 const diff_hours = project_data ? tsDiffInHours(project_data["timestamp"] , Date.now()) : 999;
                 if(diff_hours <= 24){
@@ -139,7 +143,7 @@ function ViewProjectDetails(props){
         <label><span>{language_text}</span>
             <span className="input_field">
                 {language ? (
-                    <select onChange={ (e) => session_context.handleLanguageChange(e.target.value) }>
+                    <select onChange={ (e) => session_context.handleLanguageChange(e.target.value) } value={session_context.selectedLanguage}>
                         {language.map((lang) => (
                             <option key={lang.lang} value={lang.lang}>
                                 {lang.language}
@@ -162,7 +166,7 @@ function ViewProjectDetails(props){
             <div className="project_login">
                 <p className="signin_status">{status}</p>
                 <label><span>{project_id_text}</span>
-                    <span className="input_field"><input type="text" className={props.signedIn ? "signedIn" : ""} disabled={props.signedIn && session_context.data.project_id !== null ? true : false} onChange={ e => props.setPcode(e.target.value) } value={props.pcode} placeholder='eg; ABCD'/></span>
+                    <span className="input_field"><input type="text" className={props.signedIn ? "signedIn" : ""} disabled={props.signedIn && session_context.data.project_id !== null ? true : false} onChange={ e => props.setPcode(e.target.value) } value={props.pcode.toUpperCase()} placeholder='eg; ABCD'/></span>
                 </label>
                 {pw_or_language}
             </div>
@@ -173,7 +177,7 @@ function ViewProjectDetails(props){
 function Actions(props){
     const session_context       = useContext(SessionContext);
     const walk_context          = useContext(WalkContext);
-
+    const { getTranslation }    = useContext(SessionContext);
     const [clicks, setClicks]   = useState(0);
 
     const onClickDeleteInc = () => {
@@ -200,73 +204,66 @@ function Actions(props){
         }
     }
 
-    const startConsent = (e) => {
-        //DONT NEED ANYTHING HERE
-    }
-    const signInProject = (e) => {
-        //DONT NEED ANYTHING HERE?
-        // console.log("sign in project");
-    }
-
     const changeProject = (e) => {
         props.projectSignInOut(false);
         updateContext(session_context, {"project_id" : null});
         updateContext(walk_context, {"project_id" : null});
+
+        session_context.handleLanguageChange("en");
+
         // console.log("change project");
     }
 
-    const start_walk_text       = session_context.getTranslation("start");
-    const change_project_text   = session_context.getTranslation("change_project");
-    const view_data_text        = session_context.getTranslation("view_upload");
-    const setup_text            = session_context.getTranslation("setup_project");
-    const clear_db_text         = session_context.getTranslation("truncate_localdb");
+    // Use useMemo to compute translations only when necessary
+    const translations = useMemo(() => ({
+        start_walk_text: getTranslation("start"),
+        change_project_text: getTranslation("change_project"),
+        view_data_text: getTranslation("view_upload"),
+        setup_text: getTranslation("setup_project"),
+        clear_db_text: getTranslation("truncate_localdb")
+    }), [getTranslation]);
 
-    //DO WE STILL NEED AN "upload page"?
-    return props.signedIn  ? (
+    const SignedInButtons = () => (
         <div className="home_actions">
             <Button
                 className="start_walk project_setup"
                 variant="primary"
                 as={Link} to="/consent"
-                onClick={(e) => {
-                    startConsent(e);
-                }}
-            >{start_walk_text}</Button>
+            >{translations.start_walk_text}</Button>
 
             <Button
                 className="change_project project_setup"
                 variant="info"
-                onClick={(e) => {
-                    changeProject(e);
-                }}
+                onClick={changeProject}
                 as={Link} to="/home"
-            >{change_project_text}</Button>
+            >{translations.change_project_text}</Button>
 
             <Button
                 className="upload_data project_setup"
                 variant="info"
                 as={Link} to="/upload"
-            >{view_data_text}</Button>
+            >{translations.view_data_text}</Button>
         </div>
-    ) : (
+    );
+
+    const NotSignedInButtons = () => (
         <div className="home_actions">
             <Button
                 form="signin_project"
                 type="submit"
                 variant="success"
                 className="project_setup"
-                onClick={(e) => {
-                    signInProject(e);
-                }}
-            >{setup_text}</Button>
+            >{translations.setup_text}</Button>
 
             <Button
                 variant="warning"
                 className="truncate_database"
                 onClick={onClickDeleteInc}
-            >{clear_db_text}</Button>
+            >{translations.clear_db_text}</Button>
         </div>
     );
+
+    return props.signedIn ? <SignedInButtons /> : <NotSignedInButtons />;
 }
 
 function ViewBox(props){
@@ -327,7 +324,6 @@ function ViewBox(props){
                     onClickNav = { onClickNavigate }
                 />
                 <AlertModal show={showModal} handleCancel={handleCancel} handleOK={handleOK} message={alertMessage}/>
-                {/*<PermissionModal permissionNames={["camera","geo"]} />*/}
             </div>
     )
 }
@@ -369,6 +365,8 @@ export function Home(){
                         };
 
                         updateContext(session_context, session_data);
+                        session_context.handleLanguageChange(ap["current_language"]);
+
                         setPcode(ap["project_id"]);
                         setSignedIn(true);
                     }
@@ -380,8 +378,10 @@ export function Home(){
             console.error('Error counting records:', error);
         });
 
+        //KICK OFF THE POLLING THAT PUSHES INDEXDB TO FIREBASE
+        syncData();
 
-    }, [session_context]);
+    }, []);
 
     return (
         <ViewBox signedIn={signedIn} setSignedIn={setSignedIn} pcode={pcode} setPcode={setPcode} pword={pword} setPword={setPword}/>

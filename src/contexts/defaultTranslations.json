@@ -60,7 +60,7 @@
     "en": "Is this good or bad for the community?"
   },
   "instructions_upload": {
-    "en" : "Data will upload automatically when your device is online. This app does not need to be open!"
+    "en" : "Data automatically uploaded when network connection is stable."
   },
   "language": {
     "en": "Language"
@@ -111,7 +111,7 @@
     "en": "Save"
   },
   "setup_project": {
-    "en": "Setup project on this device"
+    "en": "Set up project on this device"
   },
   "start": {
     "en": "Start"
@@ -168,8 +168,10 @@
   "no_edit" : { "en" :  "Changes to this Walk/Photo can no longer be saved" },
   "no_photos_yet" : {"en" :  "No photos in current walk yet"},
   "walk_summary" : {"en" :  "Walk Summary"},
-  "data_uploaded" : {"en" :  "Data Uploaded" },
-  "data_pending" : {"en" :  "Data Pending Upload" },
+  "data_uploaded" : {"en" :  "Complete" },
+  "data_pending" : {"en" :  "Pending" },
+  "data_in_progress" : {"en" :  "In Progress" },
+  "data_error" : {"en" :  "Failed" },
   "delete_all_data" : {"en" :  "Delete All Stored Data" }
 }
 

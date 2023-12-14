@@ -4,3 +4,4 @@ node_modules
 travis-deploy-gcp-key.json
 build
 .env
+package-lock.json

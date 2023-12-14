@@ -12,6 +12,8 @@ import {SessionContext} from "../../contexts/Session";
 import {WalkmapContext} from "../../contexts/Walkmap";
 import {WalkContext} from "../../contexts/Walk";
 
+import { Offline, Online } from "react-detect-offline";
+
 import "../../assets/css/view_summary.css";
 
 function ViewBox(props){
@@ -24,26 +26,45 @@ function ViewBox(props){
     const [obsCount, setObsCount]       = useState(0);
 
     useEffect(() => {
-        setCoordinates(walk_context.data.geotags);
-        setPhotoCount(walk_context.data.photos.length);
-        // console.log("walk geo tags", walk_context.data.geotags, coordinates);
+        let fcounts = 0;
 
-        if(walk_context.data.photos.length){
-            let fcounts = 0;
-            for(let ph_i in walk_context.data.photos){
-                let photo   = walk_context.data.photos[ph_i];
-                if(photo.hasOwnProperty("text_comment") && photo.text_comment !== ""){
-                    setObsCount(obsCount + 1);
+        // If geotags are available, use them
+        if (walk_context.data.geotags && walk_context.data.geotags.length > 0) {
+            setCoordinates(walk_context.data.geotags);
+        }
+        // Else, fall back to using the geotags from individual photos
+        else if (walk_context.data.photos && walk_context.data.photos.length > 0) {
+            const fallbackCoords = walk_context.data.photos.map(photo => {
+                if (photo.geotag) {
+                    return {
+                        lat: photo.geotag.latitude,
+                        lng: photo.geotag.longitude,
+                        // Add other properties if they are common between geotags and photo geotags
+                    };
+                }
+                return null;
+            }).filter(coord => coord !== null);
+            setCoordinates(fallbackCoords);
+        }
+
+        setPhotoCount(walk_context.data.photos.length);
+
+        if (walk_context.data.photos.length) {
+            for (let ph_i in walk_context.data.photos) {
+                let photo = walk_context.data.photos[ph_i];
+                if (photo.hasOwnProperty("text_comment") && photo.text_comment !== "") {
                     fcounts++;
                 }
-                if(photo.hasOwnProperty("audios") && Object.keys(photo.audios).length){
-                    setObsCount(obsCount + Object.keys(photo.audios).length);
+                if (photo.hasOwnProperty("audios") && Object.keys(photo.audios).length) {
                     fcounts += Object.keys(photo.audios).length;
                 }
             }
             setObsCount(fcounts);
         }
-    },[walk_context.data, coordinates, obsCount]);
+
+        // console.log("PRECISE ON , no walk geo, but yes photo geo", walk_context.data.geotags, walk_context.data.photos);
+    }, [walk_context.data]);
+
 
     const resetWalkHandler = (e) => {
         //reset walkmap data length to 0, concat more next time incase they continue walk;
@@ -76,12 +97,24 @@ function ViewBox(props){
 
             <Row id="walkmap">
                 <Col sm={{span:8, offset:2}} xs={{span:10, offset:1}} className="consentbox vertconnect noborå">
-                    <GMapContainer coordinates={coordinates}>
-                        {coordinates.map((coordinate, index) => (
-                            <Marker key={index} position={coordinate} />
-                        ))}
-                        <Polyline path={coordinates} />
-                    </GMapContainer>
+                    {/* Conditionally render map or fallback message */}
+                    {coordinates.length > 0 ? (
+                        <GMapContainer coordinates={coordinates}>
+                            {coordinates.map((coordinate, index) => (
+                                <Marker key={index} position={coordinate} />
+                            ))}
+                            <Polyline path={coordinates} />
+                        </GMapContainer>
+                    ) : (
+                        <>
+                            <Online>
+                                <div>Sorry, no geo data was gathered for this walk. Please try again or notify admin.</div>
+                            </Online>
+                            <Offline>
+                                <div>Sorry, cannot generate map offline. Map data will be available on the data portal.</div>
+                            </Offline>
+                        </>
+                    )}
                 </Col>
             </Row>
 

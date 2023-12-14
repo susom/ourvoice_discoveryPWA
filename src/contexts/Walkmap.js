@@ -9,8 +9,8 @@ export const WalkmapContext = createContext({
 });
 
 export const WalkmapContextProvider = ({children}) => {
-    const session_context = useContext(SessionContext);
-    const [data, setData] = useState([]);
+    const session_context                   = useContext(SessionContext);
+    const [data, setData]                   = useState([]);
     const [startTracking, setStartTracking] = useState(false);
 
     const startGeoTracking = () => {
@@ -36,9 +36,9 @@ export const WalkmapContextProvider = ({children}) => {
                         "speed" : pos.coords.speed,
                         "timestamp" : pos.timestamp,
                     };
-                    const data_copy = data;
-                    data_copy.push(geo_point);
-                    setData(data_copy);
+
+                    // console.log("a fresh coordinate", geo_point);
+                    setData(prevData => [...prevData, geo_point]);
                 }
             }, (err) => {
                 console.log(err);
@@ -49,6 +49,7 @@ export const WalkmapContextProvider = ({children}) => {
     };
 
     useEffect(() => {
+        // console.log("WalkmapContext useEffect triggered", startTracking, session_context.data.in_walk);
         let interval;
         if (startTracking && session_context.data.in_walk) {
             interval = setInterval(updatePosition, 5000);
@@ -58,7 +59,7 @@ export const WalkmapContextProvider = ({children}) => {
     }, [startTracking, session_context.data.in_walk]);
 
     return (
-        <WalkmapContext.Provider value={{data, setData, startGeoTracking}}>
+        <WalkmapContext.Provider value={{data, setData, startGeoTracking, startTracking}}>
             {children}
         </WalkmapContext.Provider>
     );

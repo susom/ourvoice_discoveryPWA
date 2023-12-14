@@ -1,24 +1,27 @@
 // syncManager.js
-import {auth, firestore, storage} from "./Firebase";
+import {auth, firestore, storage, storage_2} from "./Firebase";
 import {signInAnonymously} from "firebase/auth";
 import {db_files, db_walks} from "./db";
-import {ref, uploadBytes} from "firebase/storage";
+import {ref, uploadBytes, uploadBytesResumable} from "firebase/storage";
 import {buildFileArr, bulkUpdateDb, cloneDeep, isBase64} from "../components/util";
 import {collection, doc, setDoc, writeBatch} from "firebase/firestore";
 
 async function uploadFiles(file_arr){
-    // Query the database for records where fileName matches any value in the array
-    const files         = await db_files.files.where('name').anyOf(file_arr).toArray();
-    // console.log("files to array", files);
+    const files = await db_files.files.where('name').anyOf(file_arr).toArray();
     const promises = files.map((file) => {
         const file_type     = file.name.indexOf("audio") > -1 ? "audio_" : "photo_";
         const temp          = file.name.split("_" + file_type);
         const file_name     = file_type + temp[1];
         const temp_path     = temp[0].split("_");
         const file_path     = temp_path[0] + "/" + temp_path[1] + "/" + temp_path[2] + "/" + file_name;
+
         const storageRef    = ref(storage, file_path);
+        const storageRef_2  = ref(storage_2, file_path);
+
         let fileToUpload    = file.file;
+        let isImage         = false;
         if (isBase64(fileToUpload)) {
+            isImage = true;
             const binaryString = atob(fileToUpload.split(",")[1]);
             const byteArray = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -27,89 +30,109 @@ async function uploadFiles(file_arr){
             fileToUpload = new Blob([byteArray], { type: "image/png" });
         }
 
-        return uploadBytes(storageRef, fileToUpload).then(() => {
-            console.log(file.name, "uploaded");
-        }).catch((error) => {
-            console.error("Error uploading file", file.name, error);
-        });;
+        return new Promise((resolve, reject) => {
+            const which_storage = isImage ? storageRef_2 : storageRef;
+            const uploadTask    = uploadBytesResumable(which_storage, fileToUpload);
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log(`Upload is ${progress}% done`);
+                },
+                (error) => {
+                    console.error("Error uploading file", file.name, error);
+                    reject(error);
+                },
+                () => {
+                    console.log(file.name, "uploaded");
+                    resolve();
+                }
+            );
+        });
     });
 
-    try {
-        await Promise.all(promises);
-    } catch (error) {
-        console.error("Error uploading files", error);
+    await Promise.all(promises);
+}
+
+async function updateWalkStatus(item, status, uploaded) {
+    const walk = await db_walks.walks.get(item.id);
+    if (walk) {
+        walk.status = status;
+        if (typeof uploaded !== 'undefined') {
+            walk.uploaded = uploaded;
+        }
+        await db_walks.walks.put(walk);
+
+        // Trigger the custom event after the status is updated in IndexedDB
+        window.dispatchEvent(new Event('indexedDBChange'));
     }
-};
+}
 
-function batchPushToFirestore(walk_data){
-    // Add walk to Firestore, Add geotags Subcollection to walk, Upload files to Storage
-    const update_records    = [];
-    let files_arr           = [];
 
-    // Create a batch object
+async function batchPushToFirestore(walk_data) {
+    const update_records = [];
+    let files_arr = [];
     const batch = writeBatch(firestore);
 
-    walk_data.filter(function(item) {
-        //need to figure out why the query doesnt give proper collection
-        //for now just filter out whole data set which should never really get that many
-        if (item.uploaded || !item.complete) {
-            return false; // skip
+    // Filter out already uploaded or incomplete walks
+    const filteredWalkData = walk_data.filter(item => !item.uploaded && item.complete);
+    console.log(`Filtered walks to be processed:`, filteredWalkData);
+
+    for (const item of filteredWalkData) {
+        try {
+            await updateWalkStatus(item, "IN_PROGRESS");
+
+            // Prepare the document data
+            const doc_id = item.project_id + "_" + item.user_id + "_" + item.timestamp;
+            const doc_data = {
+                "device": item.device,
+                "lang": item.lang,
+                "project_id": item.project_id,
+                "timestamp": item.timestamp,
+                "photos": item.photos
+            };
+
+            const doc_ref = doc(firestore, "ov_walks", doc_id);
+
+            // Log the doc_data for inspection before updating Firestore
+            // console.log(`Data for doc_id ${doc_id}:`, doc_data);
+
+            batch.set(doc_ref, doc_data);
+
+            const geotags = item.geotags;
+            const sub_ref = collection(doc_ref, "geotags");
+
+            for (const [index, geotag] of geotags.entries()) {
+                const subid = (index + 1).toString();
+                await setDoc(doc(sub_ref, subid), { geotag });
+            }
+
+            await batch.commit();
+
+            console.log(`Firestore batch commit successful for walk ID: ${item.id}`);
+            await updateWalkStatus(item, "COMPLETE", 1);
+            files_arr = [...files_arr, ...buildFileArr(doc_id, item.photos)];
+
+        } catch (error) {
+            console.error(`Error processing walk ID ${item.id}:`, error);
+            await updateWalkStatus(item, "ERROR");
+            // Implement a mechanism to handle individual walk failures here
         }
-        return true;
-    }).map((item) => {
-        // TRIM THE LOCAL CACHE TO MAKE RECORD FOR FIRESTORE
-        let doc_id    = item.project_id + "_" + item.user_id + "_" + item.timestamp;
-        let doc_data  = {
-            "device"    : item.device,
-            "lang"      : item.lang,
-            "project_id": item.project_id,
-            "timestamp" : item.timestamp,
-            "photos"    : item.photos
-        };
-        //create document
-        let doc_ref     = doc(firestore, "ov_walks", doc_id);
 
-        //create subcollection under document
-        let geotags     = item.geotags;
-        let sub_ref     = collection(doc_ref, "geotags");
-        geotags.forEach((geotag,index) => {
-            let subid   = (index+1).toString();
-            //add each walk route geo data point in order
-            setDoc(doc(sub_ref, subid), {geotag})
-                .then((docRef) => {
-                    console.log('in SW Document written with ID: ', docRef);
-                }).catch((error) => {
-                console.error('Error adding document: ', error);
-            });
-        });
+        // Upload files
+        try {
+            await uploadFiles(files_arr);
+        } catch (error) {
+            console.error(`Error uploading files for walk ID ${item.id}:`, error);
+            // Consider how to handle file upload errors here, possibly marking the walk as incomplete
+        }
 
-        //set the main doc into batch for single processing
-        batch.set(doc_ref, doc_data);
-
-        //collect records to update the indexdb "uploaded" flag
-        const uploaded_record = cloneDeep(item);
-
-        uploaded_record.uploaded = 1;
-        update_records.push(uploaded_record);
-
-        //build array of files from the walks that need uploading to storage
-        files_arr = [...files_arr, ...buildFileArr(doc_id, item.photos)];
-    });
-
-    // Commit the batch of walk data
-    batch.commit().then(() => {
-        console.log('in SW and upload the indivdual files' , files_arr);
-        uploadFiles(files_arr);
-
-        console.log('in SW now update the walks in indexDB');
-        bulkUpdateDb(db_walks, "walks", update_records);
-
-        //dispatch an event that the upload table can listen for?
-        window.dispatchEvent(new CustomEvent('indexedDBChange'));
-    }).catch((error) => {
-        console.error('Batch write failed:', error);
-    });
+        // Update IndexedDB status after files are uploaded
+        await bulkUpdateDb(db_walks, "walks", update_records);
+    }
 }
+
+
+
 
 export async function syncData() {
     // Set up timer to periodically check IndexedDB
@@ -129,26 +152,26 @@ export async function syncData() {
     };
 
     setInterval(async () => {
-        // Query IndexedDB for new data
-        console.log("every 60 seconds, navigator", navigator.onLine);
+        try {
+            if (navigator.onLine) {
+                await signIn();
 
-        if(navigator.onLine){
-            signIn();
+                const walks_col = await db_walks.walks.toCollection();
+                const count = await walks_col.count();
 
-            const walks_col = await db_walks.walks.toCollection();
-
-            walks_col.count().then(count => {
                 if (count > 0) {
-                    console.log("in syncData maybe SW maybe in APP, has ", count, "walks");
-                    walks_col.toArray(( arr_data) => {
-                        batchPushToFirestore(arr_data);
-                    });
+                    // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
+                    const arr_data = await walks_col.toArray();
+                    await batchPushToFirestore(arr_data);
+                } else {
+                    console.log("No new walks to sync.");
                 }
-            }).catch(error => {
-                console.error('Error counting walks:', error);
-            });
-        }else{
-            console.log("in syncData maybe SW maybe in APP what navigator not online/");
+            } else {
+                console.log("Offline. Skipping sync.");
+            }
+        } catch (error) {
+            console.error('An error occurred during the sync interval:', error);
         }
-    }, 60000); // Check every 60 (60000ms) seconds
+    }, 60000);  // Check every 60 seconds (60000 ms)
+
 }

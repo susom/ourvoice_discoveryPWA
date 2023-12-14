@@ -1,9 +1,11 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import { Link } from "react-router-dom";
 import { Container, Row, Col, Button } from 'react-bootstrap';
 
 import { db_walks, db_files } from "../database/db";
 import { updateContext, hasGeo, cloneDeep, getFileByName, buildFileArr, shallowMerge } from "../components/util";
+
+import usePermissions from './usePermissions';
 
 import { SessionContext } from "../contexts/Session";
 import { WalkContext } from "../contexts/Walk";
@@ -12,6 +14,7 @@ import AudioRecorderWithIndexDB from "../components/audio_recorder";
 import PermissionModal from './device_permisssions';
 
 import icon_walk from "../assets/images/icon_walk.png";
+import { MicFill, ChevronExpand, ChevronContract } from 'react-bootstrap-icons';
 
 function ViewBox(props){
     return (
@@ -25,6 +28,11 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
     const session_context   = useContext(SessionContext);
     const walk_context      = useContext(WalkContext);
 
+    const {setTakePhoto}    = useContext(WalkContext);
+    const {setCameraLoaded} = useContext(WalkContext);
+
+    const [permissions]     = usePermissions();
+
     const [upVote, setUpVote]               = useState(false);
     const [downVote, setDownVote]           = useState(false);
     const [showText, setShowText]           = useState(false);
@@ -36,8 +44,23 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
     const [photoPreview, setPhotoPreview]   = useState(icon_walk);
     const [audioPlaying, setAudioPlaying]   = useState(null);
 
+    const [isExpanded, setIsExpanded]                   = useState(false);
+    const [shouldShowExpander, setShouldShowExpander]   = useState(false);
+    const projectTagsRef                                = useRef(null);  // Create a ref for the project tags div
+
     const [existingFiles, setExistingFiles] = useState([]);
     const has_audio_comments                = session_context.data.project_info.hasOwnProperty("audio_comments") && session_context.data.project_info["audio_comments"];
+
+    const [showAudioPermissionModal, setShowAudioPermissionModal]           = useState(false);
+    const [hasAudioPermissionModalShown, setHasAudioPermissionModalShown]   = useState(false);
+
+    const handleAudioPermission = () => {
+        setShowAudioPermissionModal(true);
+    }
+
+    const onPermissionChanged = (granted) => {
+        session_context.setIsAudioPermissionGranted(granted);
+    };
 
     useEffect(() => {
         if(hasGeo()){
@@ -126,9 +149,20 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
     const saveTag = (e, item) => {
         e.preventDefault();
         const tags_copy = [...tags];
-        tags_copy.push(item);
+
+        // Check if the tag already exists in the tags array
+        const tagIndex = tags_copy.indexOf(item);
+
+        // If it exists, remove it. If it doesn't, add it.
+        if (tagIndex > -1) {
+            tags_copy.splice(tagIndex, 1);  // remove the tag
+        } else {
+            tags_copy.push(item);  // add the tag
+        }
+
         setTags(tags_copy);
     }
+
 
     const savePhoto = (e,_this) => {
         e.preventDefault();
@@ -154,8 +188,8 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
             }
         }
 
-        const upvote_val    = upVote ? 1 : 0;
-        const downvote_val  = downVote ? 2 : 0;
+        const upvote_val    = upVote ? 2 : 0;
+        const downvote_val  = downVote ? 1 : 0;
 
         const this_photo    = {
             "audios" : audio_names,
@@ -164,7 +198,8 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
             "name" : "photo_" + photo_i + ".jpg",
             "rotate" : rotate,
             "tags" : tags,
-            "text_comment" : textComment
+            "text_comment" : textComment,
+            "timestamp": Date.now()
         }
 
         if(session_context.previewPhoto === null) {
@@ -197,6 +232,9 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
         clearStates();
         session_context.setPreviewWalk(null);
         session_context.setPreviewPhoto(null);
+
+        setTakePhoto(false);
+        setCameraLoaded(false);
         e.stopPropagation();
         return true;
     }
@@ -204,6 +242,9 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
     const deletePhoto = (e,_this) => {
         e.preventDefault();
         clearStates();
+
+        setTakePhoto(false);
+        setCameraLoaded(false);
         session_context.setPreviewWalk(null);
         session_context.setPreviewPhoto(null);
     }
@@ -236,6 +277,18 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
             }
         }
     }
+
+    const toggleExpand = () => {
+        setIsExpanded(!isExpanded);
+    };
+
+    useEffect(() => {
+        // Measure the height of the project_tags div
+        const tagsHeight = projectTagsRef.current ? projectTagsRef.current.offsetHeight : 0;
+
+        // Decide whether to show the expander or not (e.g., height > 50)
+        setShouldShowExpander(tagsHeight > 60);
+    }, [isExpanded]);  // Re-check when isExpanded changes
 
     const why_this_text     = session_context.getTranslation("why_this_photo");
     const what_about_text   = session_context.getTranslation("project_tags");
@@ -275,20 +328,38 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                                             document.getElementById("text_comment").focus();
                                         }}>keyboard</a>
                                     </Col>
+
                                     <Col xs={{span: 9}} className="record_audio">
                                         {
                                             session_context.data.project_info["audio_comments"] ? (
                                                 <>
-                                                    <PermissionModal permissionNames={["audio"]} />
-                                                    <AudioRecorderWithIndexDB stateAudios={audios} stateSetAudios={setAudios}/>
+                                                    {showAudioPermissionModal && !hasAudioPermissionModalShown && (
+                                                        <PermissionModal
+                                                            permissionNames={["audio"]}
+                                                            closeModal={() =>  {
+                                                                setShowAudioPermissionModal(false);
+                                                                setHasAudioPermissionModalShown(true);
+                                                            }}
+                                                            onPermissionChanged={onPermissionChanged}
+                                                        />
+                                                    )}
 
-                                                    <div id="saved_audio">
-                                                        {
-                                                            Object.keys(audios).map((key, idx) => {
-                                                                return <a href="/#" className="saved" key={key} onClick={(e) => { handleAudio(e, key) }}>{idx+1}</a>
-                                                            })
-                                                        }
-                                                    </div>
+                                                    {!session_context.isAudioPermissionGranted ? (
+                                                        <a className={`decoy_audio`} onClick={handleAudioPermission}>
+                                                            <MicFill size={18}/>
+                                                        </a>
+                                                    ) : (
+                                                        <>
+                                                            <AudioRecorderWithIndexDB stateAudios={audios} stateSetAudios={setAudios} />
+                                                            <div id="saved_audio">
+                                                                {
+                                                                    Object.keys(audios).map((key, idx) => {
+                                                                        return <a href="/#" className="saved" key={key} onClick={(e) => { handleAudio(e, key) }}>{idx+1}</a>
+                                                                    })
+                                                                }
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </>
                                             )
                                             : ""
@@ -315,15 +386,19 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                                                 <Col xs={{span: 12}} className="consentbox">{what_about_text}
                                                 </Col>
                                             </Row>
-                                            <Row className="project_tags">
+                                            <Row className={`project_tags outer ${isExpanded ? "expanded" : ""}`} >
                                             {
                                                 session_context.data.project_info.tags.length
-                                                    ? <Col id="project_tags" xs={{span: 12}}>
+                                                    ? <Col id="project_tags" xs={{span: 12}} ref={projectTagsRef}>
                                                         {session_context.data.project_info.tags.map((item)=>(
                                                             <a href="/#" className={`project_tag ${tags.includes(item) ? 'on' : ''}`} key={item} onClick={(e)=> {
                                                                 saveTag(e, item);
                                                             }}>{item}</a>
                                                         ))}
+
+                                                        {shouldShowExpander && (<span className="toggle-button project_tags_exapando" onClick={toggleExpand}>
+                                                            {isExpanded ? <ChevronContract size={16}/> : <ChevronExpand size={16}/> }
+                                                        </span>)}
                                                     </Col>
                                                     : <Col id="no_tags" xs={{span: 12}}><em>{no_tags_text}</em></Col>
                                             }
@@ -341,11 +416,11 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                                 <Row className="goodbad votes smilies">
                                     <Col xs={{span: 4}}><a href="/#"
                                                                       className={`vote up smilies ${upVote ? 'on' : ''} `}
-                                                                      onClick={(e) => voteClick(e, 1)}>up</a></Col>
+                                                                      onClick={(e) => voteClick(e, true)}>up</a></Col>
                                     <Col xs={{span: 4}} className="jointext">{choose_one_text}</Col>
                                     <Col xs={{span: 4}}><a href="/#"
                                                                       className={`vote down smilies ${downVote ? 'on' : ''}`}
-                                                                      onClick={(e) => voteClick(e, 0)}>down</a></Col>
+                                                                      onClick={(e) => voteClick(e, false)}>down</a></Col>
                                 </Row>
 
                                 <Row className="btns buttons">

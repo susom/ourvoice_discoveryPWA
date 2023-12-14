@@ -4,8 +4,6 @@ import {Navigate} from "react-router-dom";
 import {updateContext} from "../../components/util";
 import {SessionContext} from "../../contexts/Session";
 
-
-
 import "../../assets/css/view_splash.css";
 
 export function Landing(){
@@ -21,7 +19,7 @@ export function Landing(){
 
     return redirectNow ?
         (
-            <Navigate to={{pathname: '/home'}} / >
+            <Navigate to={{pathname: '/home'}} />
         )
         :
         (

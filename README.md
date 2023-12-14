@@ -9,7 +9,10 @@ To run in development:
 2. `docker compose up`
 3. Navigate to localhost:80
 
+# Deployment
 
+Deployment is handled via TravisCI.
+- Currently deployed using NodeJS 16
 
 
 # Getting Started with Create React App
@@ -82,3 +85,5 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+

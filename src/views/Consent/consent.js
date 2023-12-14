@@ -44,9 +44,10 @@ export function Consent({Navigate}){
         const walk_start        = Date.now();
         let walk_id             = walk_start.toString();
         walk_id                 = walk_id.substring(walk_id.length - 4);
-        updateContext(walk_context, {"timestamp" : walk_start, "walk_id" : walk_id, "user_id" : unique_id, "project_id" : session_context.data.project_id});
+        updateContext(walk_context, {"timestamp" : walk_start, "walk_id" : walk_id, "user_id" : unique_id, "project_id" : session_context.data.project_id, "lang" : session_context.selectedLanguage});
         updateContext(session_context, {"in_walk" : true});
 
+        session_context.setPreviewWalk(null);
         //save walk now, in case interrupted
         //after every photo, update the indexDB with new photo data...
         //when finish walk, flag it for service worker to pick it up to push

@@ -73,11 +73,12 @@ LIGHT GREY  : #E0E0E0
 /*PIC REVIEW AFTER TAKING PHOTO*/
 #recent_pic {
     /*max-width:45vw;*/
-    max-height:30vh;
+    max-height:25vh;
+
 }
 
 .recent_pic{
-    padding:20px 0 0;
+    padding:10px 0 0;
 }
 #pic_review{
     /*margin-top:-25%;*/
@@ -92,7 +93,10 @@ LIGHT GREY  : #E0E0E0
 }
 
 #pic_review .consentbox{
-    margin-top:20px;
+    margin-top:10px;
+    font-size:92%;
+    padding:3px;
+    margin-bottom:10px;
 }
 #pic_review .device_actions i {
     display:block;
@@ -111,7 +115,7 @@ LIGHT GREY  : #E0E0E0
 }
 
 
-
+.decoy_audio,
 .record_audio .audio-recorder{
     color:#333;
     text-shadow:none;
@@ -134,6 +138,13 @@ LIGHT GREY  : #E0E0E0
 .record_audio .audio-recorder.recording .audio-recorder-status {
     display:inline-block;
     margin-left:0;
+}
+
+.decoy_audio{
+    background: lightgray;
+    border-radius: 20px;
+    text-align:center;
+    cursor:pointer;
 }
 
 #saved_audio {
@@ -288,12 +299,11 @@ LIGHT GREY  : #E0E0E0
     width:90%;
     margin:0 ;
     box-shadow:1px 1px 3px 1px #475464;
-    border:1px solid red;
 }
 
 #pic_review .buttons{
-    margin-top:20px;
-    padding-top:20px;
+    margin-top:10px;
+    padding-top:10px;
     border-top:1px solid #000;
 }
 
@@ -375,22 +385,22 @@ LIGHT GREY  : #E0E0E0
 
 .project_tag.on{
     color:#000;
-    font-weight:bold;
+    /*ackground-color:#d7ecfa;*/
+    /*background-color:#E3f2D3;b*/
+    background-color:#FFF9C4;
 }
 
 .project_tag{
     white-space:nowrap;
     position:relative;
-    margin:0 10px 0 10px;
+    margin:0 10px 5px 0;
     displaY:inline-block;
     height:25px;
-    border-radius: 0 5px 5px 0;
-    padding: 0 10px 0 10px;
+    border-radius: 5px;
+    padding: 0 5px 0 5px;
 
     background:#E8EDF0;
-    border: 0 solid #C7D2D4;
-    border-top-width:1px;
-    border-bottom-width:1px;
+    border: 1px solid #C7D2D4;
     color:#999;
     line-height:23px;
     text-decoration:none;
@@ -402,6 +412,7 @@ LIGHT GREY  : #E0E0E0
 }
 
 .project_tag:before{
+    display:none;
     position:absolute;
     content:"\25CF";
     color:white;
@@ -417,6 +428,32 @@ LIGHT GREY  : #E0E0E0
     border-bottom:  13px solid transparent;
 }
 
+#project_tags{
+    position:relative;
+}
+.project_tags_exapando {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.project_tags.outer {
+    max-height: 60px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.project_tags.expanded {
+    max-height: 180px; /* This value should be more than enough to show all content when expanded */
+}
+
+.toggle-button {
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+}
+
+
 .loading_photo_ui {
     margin-top:20%;
     display:inline-block;
@@ -431,6 +468,63 @@ LIGHT GREY  : #E0E0E0
     margin: 0 auto 20px;
 }
 
-.react-html5-camera-photo {
-    max-height:60vh;
+.webcam-style {
+    object-fit: cover; /* cover the entire viewport without stretching */
+    width: 100vw; /* viewport width */
+    max-width: 100%;
+    max-height:72vh;
+    height: auto;
+}
+.camera-button-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    bottom: 3vh; /* Increase this to move the buttons a bit up */
+    left: 10px;
+    right: 10px;
+    padding: 0 20px;
+}
+
+.camera-button-container .cancel-button {
+    background-color: #820000;
+    color: #fff;
+    flex-grow: 1;
+    border: none;
+    border-radius: 4px; /* Adjust this value if needed */
+    padding: 8px 12px; /* Adjust padding if needed */
+    margin-right: 5px; /* Spacing between this and the next button */
+    cursor: pointer;
+    outline: none; /* Remove focus outline, but ensure there's a focus style for accessibility */
+}
+
+.capture-button {
+    flex-grow: 1;
+    background-color: #00548f; /* or any desired shade of blue */
+    color: #fff; /* white text color */
+    border: none;
+    border-radius: 4px; /* Adjust this value if needed */
+    padding: 8px 12px; /* Adjust padding if needed */
+    margin-left: 5px; /* Spacing between this and the previous button */
+    cursor: pointer;
+    font-weight: bold;
+    outline: none; /* Remove focus outline, but ensure there's a focus style for accessibility */
+}
+
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+}
+
+.loading-image {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%); /* Centers the loading image horizontally */
+    max-width: 100px; /* Adjust size as needed */
+    max-height: 100px; /* Adjust size as needed */
 }
