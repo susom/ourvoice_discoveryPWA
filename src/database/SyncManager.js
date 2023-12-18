@@ -171,11 +171,11 @@ export async function syncData() {
             } else {
                 console.log("Offline. Skipping sync.");
             }
-            setTimeout(syncData, 6000)
+            setTimeout(syncData, 60000)
         } catch (error) {
             console.error('An error occurred during the sync interval:', error);
-            setTimeout(syncData, 6000)
+            setTimeout(syncData, 60000)
         }
-    }, 6000);  // Check every 60 seconds (60000 ms)
+    }, 60000);  // Check every 60 seconds (60000 ms)
 
 }
