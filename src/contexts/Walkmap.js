@@ -42,6 +42,8 @@ export const WalkmapContextProvider = ({children}) => {
                 }
             }, (err) => {
                 console.log(err);
+            },{
+                enableHighAccuracy : true
             });
         }else{
             console.log("geodata api not available");
