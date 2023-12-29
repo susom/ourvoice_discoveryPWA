@@ -16,7 +16,7 @@ import { Offline, Online } from "react-detect-offline";
 
 import "../../assets/css/view_summary.css";
 
-function ViewBox(props){
+function ViewBox({navigate}){
     const session_context   = useContext(SessionContext);
     const walkmap_context   = useContext(WalkmapContext);
     const walk_context      = useContext(WalkContext);
@@ -25,7 +25,9 @@ function ViewBox(props){
     const [photoCount, setPhotoCount]   = useState(0);
     const [obsCount, setObsCount]       = useState(0);
 
+
     useEffect(() => {
+        console.log('firing useEffect from summary page')
         let fcounts = 0;
 
         // If geotags are available, use them
@@ -66,7 +68,8 @@ function ViewBox(props){
     }, [walk_context.data]);
 
 
-    const resetWalkHandler = (e) => {
+    const resetWalkHandler = () => {
+        console.log('reset...')
         //reset walkmap data length to 0, concat more next time incase they continue walk;
         walkmap_context.data.length = 0;
         walkmap_context.setData(walkmap_context.data);
@@ -77,8 +80,18 @@ function ViewBox(props){
         //set completed = true, to let SW know it can push upload
         updateContext(walk_context, {"complete" : 1});
 
-        putDb(db_walks.walks, walk_context.data);
-        walk_context.resetData();
+        putDb(db_walks.walks, walk_context.data).then(res=> {
+            walk_context.resetData();
+            navigate('/home')
+        }).catch(err=> console.log(err));
+
+
+    }
+
+    const continueWalk = () => {
+        console.log('continuing walk...')
+        walkmap_context.startPolling()
+        navigate('/walk')
     }
 
     const your_route_text       = session_context.getTranslation("your_route");
@@ -158,10 +171,8 @@ function ViewBox(props){
                         data-next="finish"
                         className="btn btn-primary endwalk"
                         variant="primary"
-                        as={Link} to="/home"
-                        onClick={(e) => {
-                            resetWalkHandler(e);
-                        }}
+                        // as={Link} to="/home"
+                        onClick={resetWalkHandler}
                     >{return_text}</Button>
                 </Col>
                 <Col sm={{span:4, offset:0}} xs={{span:5}} className={`consentbox`}>
@@ -170,7 +181,7 @@ function ViewBox(props){
                         data-next="step_two"
                         className="btn btn-primary continuewalk"
                         variant="primary"
-                        as={Link} to="/walk"
+                        onClick={continueWalk}
                     >{continue_text}</Button>
                 </Col>
             </Row>
@@ -189,7 +200,7 @@ export function Summary(){
     }, [session_context.data.in_walk, navigate]);
 
     return (
-        <ViewBox />
+        <ViewBox navigate={navigate} />
     )
 };
 
