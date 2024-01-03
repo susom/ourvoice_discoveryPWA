@@ -5,7 +5,6 @@ import { v4 as uuid } from 'uuid';
 
 import {db_walks} from "../../database/db";
 import {WalkContext} from "../../contexts/Walk";
-import {WalkmapContext} from "../../contexts/Walkmap";
 import {SessionContext} from "../../contexts/Session";
 import {updateContext} from "../../components/util";
 
@@ -28,7 +27,6 @@ export function Consent({Navigate}){
     const [curPage, setCurPage] = useState(0);
     const session_context       = useContext(SessionContext);
     const walk_context          = useContext(WalkContext);
-    const walkmap_context = useContext(WalkmapContext);
     const navigate              = useNavigate();
 
     useEffect(() => {
@@ -41,8 +39,7 @@ export function Consent({Navigate}){
         e.preventDefault();
     };
 
-    const startWalk = () => {
-        walkmap_context.startPolling()
+    const startWalk = (e) => {
         const unique_id         = uuid();
         const walk_start        = Date.now();
         let walk_id             = walk_start.toString();
@@ -147,7 +144,9 @@ export function Consent({Navigate}){
                     className="btn btn-primary start_walk"
                     variant="primary"
                     as={Link} to="/walk"
-                    onClick={startWalk}
+                    onClick={(e)=>{
+                        startWalk(e);
+                    }}
                 >{start_btn_text}</Button>
                 </Col>
             </Row>

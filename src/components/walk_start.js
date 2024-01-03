@@ -4,7 +4,7 @@ import Webcam from "react-webcam";
 import PermissionModal from './device_permisssions';
 
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { SessionContext } from "../contexts/Session";
 import { WalkContext } from "../contexts/Walk";
@@ -24,7 +24,6 @@ function WalkStart(props) {
     const [customPhotoPrompt, setCustomPhotoPrompt] = useState("");
 
     const [cameraError, setCameraError] = useState(null);
-    let navigate = useNavigate();
 
     useEffect(() => {
         setCustomPhotoPrompt(session_context.data.project_info.custom_take_photo_text);
@@ -42,33 +41,23 @@ function WalkStart(props) {
     }
 
     const doneWalkHandler = (e) => {
-        walkmap_context.clearPolling() //Pause location collection
-
-        console.log('doneHandler called', walkmap_context.data)
-
         const walk_geos = walk_context.data.geotags.concat(walkmap_context.data);
-        console.log('walk_geos', walk_geos)
-
         updateContext(walk_context, { "geotags": walk_geos });
 
-        console.log(walk_context)
+        walkmap_context.data.length = 0;
+        walkmap_context.setData(walkmap_context.data);
 
-        // walkmap_context.data.length = 0;
-        // walkmap_context.setData(walkmap_context.data);
-        walkmap_context.setData([]) //Set walkmap context to empty... still recording in back
-
-        console.log(walkmap_context)
         const update_walk = async () => {
-            console.log('attempting to cache...')
-            return await db_walks.walks.put(walk_context.data)
+            try {
+                const walk_prom = await db_walks.walks.put(walk_context.data).then(() => {
+                    // console.log(walk_context.data.id, "walk_context already got an id from og add/put, so re-put the walk_context should update new data");
+                });
+                return [walk_prom];
+            } catch (error) {
+                console.log(`Failed to update ${walk_context.data.walk_id}: ${error}`);
+            }
         };
-
-        update_walk()
-            .then((res) => {
-                console.log('Success!', res)
-                navigate('/summary')
-            })
-            .catch(err => console.log(err));
+        update_walk();
     }
 
     const webcamRef = useRef(null);
@@ -83,13 +72,6 @@ function WalkStart(props) {
     const take_photo_text   = session_context.getTranslation("take_photo");
     const take_another_text = session_context.getTranslation("take_another");
     const done_walk_text    = session_context.getTranslation("done_walk");
-    // console.log('inside walk start', walkmap_context.data)
-    const debug = walkmap_context?.data?.map((e, i) => {
-        if('lat' in e)
-            return <p key={i}>{i} - {parseFloat(e.lat).toFixed(4)} {parseFloat(e.lng).toFixed(4)}</p>
-        else
-            return <p key={i}>{i} -  Error</p>
-    })
 
     return (
         (takePhoto) ?
@@ -188,17 +170,13 @@ function WalkStart(props) {
                                     <Button
                                         className="btn btn-primary endwalk"
                                         variant="primary"
-                                        // as={Link} to="/summary"
+                                        as={Link} to="/summary"
                                         onClick={(e) => {
                                             doneWalkHandler(e);
                                         }}
                                     >{done_walk_text}</Button>
                                 </Col>
                             </Row>
-                             <div style={{height:'200px', overflow:'scroll'}}>
-                                 <p>Coordinates</p>
-                                {debug.reverse()}
-                            </div>
                         </Container>
                     </Col>
                 </Row>

@@ -1,4 +1,4 @@
-import {createContext, useState, useContext, useEffect, useRef} from 'react';
+import {createContext, useState, useContext, useEffect} from 'react';
 import {SessionContext} from "../contexts/Session";
 import {hasGeo} from "../components/util";
 
@@ -12,15 +12,13 @@ export const WalkmapContextProvider = ({children}) => {
     const session_context                   = useContext(SessionContext);
     const [data, setData]                   = useState([]);
     const [startTracking, setStartTracking] = useState(false);
-    let interval = useRef()
+
     const startGeoTracking = () => {
         setStartTracking(true);
     };
 
     const updatePosition = () => {
-        console.log('updatePositionCalled')
         if(hasGeo()){
-
             navigator.geolocation.getCurrentPosition((pos) => {
                 let same_geo = false;
                 if(data.length){
@@ -38,49 +36,32 @@ export const WalkmapContextProvider = ({children}) => {
                         "speed" : pos.coords.speed,
                         "timestamp" : pos.timestamp,
                     };
-                    console.log('updating position')
+
                     // console.log("a fresh coordinate", geo_point);
                     setData(prevData => [...prevData, geo_point]);
-                    interval.current = setTimeout(updatePosition, 5000);
                 }
             }, (err) => {
                 console.log(err);
-                setData(prevData => [...prevData, {err:err}])
-                interval.current = setTimeout(updatePosition, 5000);
             },{
                 enableHighAccuracy : true
             });
         }else{
             console.log("geodata api not available");
-            interval.current = setTimeout(updatePosition, 5000);
         }
     };
-    const clearPolling = () => {
-        console.log('clearing poll')
-        clearTimeout(interval.current)
-        interval.current = null
-    }
-
-    const startPolling = () => {
-        console.log('starting poll')
-        console.log(interval.current)
-        if(!interval.current)
-            interval.current = setTimeout(updatePosition, 5000);
-    }
 
     useEffect(() => {
-        console.log("WalkmapContext useEffect triggered", startTracking, session_context.data.in_walk);
-        console.log("WalkmapContext Data", WalkmapContext.data)
-        // let interval;
+        // console.log("WalkmapContext useEffect triggered", startTracking, session_context.data.in_walk);
+        let interval;
         if (startTracking && session_context.data.in_walk) {
-            startPolling()
+            interval = setInterval(updatePosition, 5000);
         }
         //when unmounted will clear it
         return () => clearInterval(interval);
     }, [startTracking, session_context.data.in_walk]);
 
     return (
-        <WalkmapContext.Provider value={{data, setData, startGeoTracking, startTracking, startPolling, clearPolling, setStartTracking}}>
+        <WalkmapContext.Provider value={{data, setData, startGeoTracking, startTracking}}>
             {children}
         </WalkmapContext.Provider>
     );
