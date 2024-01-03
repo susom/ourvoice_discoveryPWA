@@ -96,7 +96,7 @@ async function batchPushToFirestore(walk_data) {
             // Log the doc_data for inspection before updating Firestore
             // console.log(`Data for doc_id ${doc_id}:`, doc_data);
 
-            // batch.set(doc_ref, doc_data);
+            batch.set(doc_ref, doc_data);
 
             const geotags = item.geotags;
             const sub_ref = collection(doc_ref, "geotags");
@@ -106,7 +106,7 @@ async function batchPushToFirestore(walk_data) {
                 await setDoc(doc(sub_ref, subid), { geotag });
             }
 
-            // await batch.commit();
+            await batch.commit();
 
             console.log(`Firestore batch commit successful for walk ID: ${item.id}`);
             await updateWalkStatus(item, "COMPLETE", 1);
