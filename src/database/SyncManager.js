@@ -77,8 +77,6 @@ async function batchPushToFirestore(walk_data) {
     const filteredWalkData = walk_data.filter(item => !item.uploaded && item.complete);
     console.log(`Filtered walks to be processed:`, filteredWalkData);
 
-    return; //Remember to delete after testing.
-
     for (const item of filteredWalkData) {
         try {
             await updateWalkStatus(item, "IN_PROGRESS");
