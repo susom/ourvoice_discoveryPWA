@@ -20,6 +20,7 @@ import Summary from './views/Summary';
 import Upload from './views/Upload';
 
 function App() {
+    console.log('app refreshing in APP.js')
   return (
     <SessionContextProvider>
         <WalkmapContextProvider>
