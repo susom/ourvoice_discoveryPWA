@@ -42,9 +42,15 @@ export const WalkmapContextProvider = ({children}) => {
                     // console.log("a fresh coordinate", geo_point);
                     setData(prevData => [...prevData, geo_point]);
                     interval.current = setTimeout(updatePosition, 5000);
+                } else {
+                    if(pos.coords.accuracy < 50)
+                        setData(prevData => [...prevData, {err:'accuracy of pos not < 50, not saving'}])
+                    else
+                        setData(prevData => [...prevData, {err:'same geo encountered, skipping'}])
                 }
+
             }, (err) => {
-                console.log(err);
+                console.log('error callback triggered in getPosition', err);
                 setData(prevData => [...prevData, {err:err}])
                 interval.current = setTimeout(updatePosition, 5000);
             });
