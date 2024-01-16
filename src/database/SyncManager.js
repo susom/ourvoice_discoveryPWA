@@ -8,6 +8,7 @@ import {collection, doc, setDoc, writeBatch} from "firebase/firestore";
 
 async function uploadFiles(file_arr){
     const files = await db_files.files.where('name').anyOf(file_arr).toArray();
+    console.log(files)
     const promises = files.map((file) => {
         const file_type     = file.name.indexOf("audio") > -1 ? "audio_" : "photo_";
         const temp          = file.name.split("_" + file_type);
@@ -62,6 +63,7 @@ async function updateWalkStatus(item, status, uploaded) {
         }
         await db_walks.walks.put(walk);
 
+        //Is this necessary ?
         // Trigger the custom event after the status is updated in IndexedDB
         window.dispatchEvent(new Event('indexedDBChange'));
     }
@@ -77,11 +79,14 @@ async function batchPushToFirestore(walk_data) {
     const filteredWalkData = walk_data.filter(item => !item.uploaded && item.complete);
     console.log(`Filtered walks to be processed:`, filteredWalkData);
 
-    return; //Remember to delete after testing.
+    // return; //Remember to delete after testing.
 
     for (const item of filteredWalkData) {
+        if(item.status === "IN_PROGRESS") //If loop attempts uploading a current walk, continue
+            continue
+
         try {
-            await updateWalkStatus(item, "IN_PROGRESS");
+            // await updateWalkStatus(item, "IN_PROGRESS");
 
             // Prepare the document data
             const doc_id = item.project_id + "_" + item.user_id + "_" + item.timestamp;
@@ -93,26 +98,32 @@ async function batchPushToFirestore(walk_data) {
                 "photos": item.photos
             };
 
+            //References allowed before document creation
+            //Generate reference to document by id
             const doc_ref = doc(firestore, "ov_walks", doc_id);
-
-            // Log the doc_data for inspection before updating Firestore
-            // console.log(`Data for doc_id ${doc_id}:`, doc_data);
-
-            // batch.set(doc_ref, doc_data);
-
-            const geotags = item.geotags;
             const sub_ref = collection(doc_ref, "geotags");
+
+            //Set base document in OV walks with metadata
+            batch.set(doc_ref, doc_data);
+
+            //Prepare Geotag collection data
+            const geotags = item.geotags;
 
             for (const [index, geotag] of geotags.entries()) {
                 const subid = (index + 1).toString();
                 await setDoc(doc(sub_ref, subid), { geotag });
             }
 
-            // await batch.commit();
+            await batch.commit();
 
             console.log(`Firestore batch commit successful for walk ID: ${item.id}`);
             await updateWalkStatus(item, "COMPLETE", 1);
             files_arr = [...files_arr, ...buildFileArr(doc_id, item.photos)];
+            uploadFiles(files_arr)
+                .then(async () => {
+                    console.log('success')
+                    await updateWalkStatus(item, "COMPLETE", 1);
+                }).catch(e => console.log('upload failed', e));
 
         } catch (error) {
             console.error(`Error processing walk ID ${item.id}:`, error);
@@ -121,15 +132,15 @@ async function batchPushToFirestore(walk_data) {
         }
 
         // Upload files
-        try {
-            await uploadFiles(files_arr);
-        } catch (error) {
-            console.error(`Error uploading files for walk ID ${item.id}:`, error);
-            // Consider how to handle file upload errors here, possibly marking the walk as incomplete
-        }
+        // try {
+        //     await uploadFiles(files_arr);
+        // } catch (error) {
+        //     console.error(`Error uploading files for walk ID ${item.id}:`, error);
+        //     // Consider how to handle file upload errors here, possibly marking the walk as incomplete
+        // }
 
         // Update IndexedDB status after files are uploaded
-        await bulkUpdateDb(db_walks, "walks", update_records);
+        // await bulkUpdateDb(db_walks, "walks", update_records);
     }
 }
 
