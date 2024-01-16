@@ -38,7 +38,7 @@ export const WalkmapContextProvider = ({children}) => {
                         "speed" : pos.coords.speed,
                         "timestamp" : pos.timestamp,
                     };
-                    console.log('updating position')
+                    console.log('saving position successfully')
                     // console.log("a fresh coordinate", geo_point);
                     setData(prevData => [...prevData, geo_point]);
                     interval.current = setTimeout(updatePosition, 5000);
@@ -50,7 +50,7 @@ export const WalkmapContextProvider = ({children}) => {
                 }
 
             }, (err) => {
-                console.log('error callback triggered in getPosition', err);
+                console.log('error callback triggered in updatePosition', err);
                 setData(prevData => [...prevData, {err:err}])
                 interval.current = setTimeout(updatePosition, 5000);
             },{

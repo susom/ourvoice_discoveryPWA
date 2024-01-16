@@ -8,6 +8,7 @@ import {collection, doc, setDoc, writeBatch} from "firebase/firestore";
 
 async function uploadFiles(file_arr){
     const files = await db_files.files.where('name').anyOf(file_arr).toArray();
+    console.log(files)
     const promises = files.map((file) => {
         const file_type     = file.name.indexOf("audio") > -1 ? "audio_" : "photo_";
         const temp          = file.name.split("_" + file_type);
@@ -62,6 +63,7 @@ async function updateWalkStatus(item, status, uploaded) {
         }
         await db_walks.walks.put(walk);
 
+        //Is this necessary ?
         // Trigger the custom event after the status is updated in IndexedDB
         window.dispatchEvent(new Event('indexedDBChange'));
     }
@@ -77,9 +79,14 @@ async function batchPushToFirestore(walk_data) {
     const filteredWalkData = walk_data.filter(item => !item.uploaded && item.complete);
     console.log(`Filtered walks to be processed:`, filteredWalkData);
 
+    // return; //Remember to delete after testing.
+
     for (const item of filteredWalkData) {
+        if(item.status === "IN_PROGRESS") //If loop attempts uploading a current walk, continue
+            continue
+
         try {
-            await updateWalkStatus(item, "IN_PROGRESS");
+            // await updateWalkStatus(item, "IN_PROGRESS");
 
             // Prepare the document data
             const doc_id = item.project_id + "_" + item.user_id + "_" + item.timestamp;
@@ -91,15 +98,20 @@ async function batchPushToFirestore(walk_data) {
                 "photos": item.photos
             };
 
+            //References allowed before document creation
+            //Generate reference to document by id
             const doc_ref = doc(firestore, "ov_walks", doc_id);
 
             // Log the doc_data for inspection before updating Firestore
             // console.log(`Data for doc_id ${doc_id}:`, doc_data);
 
+            const sub_ref = collection(doc_ref, "geotags");
+
+            //Set base document in OV walks with metadata
             batch.set(doc_ref, doc_data);
 
+            //Prepare Geotag collection data
             const geotags = item.geotags;
-            const sub_ref = collection(doc_ref, "geotags");
 
             for (const [index, geotag] of geotags.entries()) {
                 const subid = (index + 1).toString();
@@ -111,6 +123,11 @@ async function batchPushToFirestore(walk_data) {
             console.log(`Firestore batch commit successful for walk ID: ${item.id}`);
             await updateWalkStatus(item, "COMPLETE", 1);
             files_arr = [...files_arr, ...buildFileArr(doc_id, item.photos)];
+            uploadFiles(files_arr)
+                .then(async () => {
+                    console.log('success')
+                    await updateWalkStatus(item, "COMPLETE", 1);
+                }).catch(e => console.log('upload failed', e));
 
         } catch (error) {
             console.error(`Error processing walk ID ${item.id}:`, error);
@@ -119,15 +136,15 @@ async function batchPushToFirestore(walk_data) {
         }
 
         // Upload files
-        try {
-            await uploadFiles(files_arr);
-        } catch (error) {
-            console.error(`Error uploading files for walk ID ${item.id}:`, error);
-            // Consider how to handle file upload errors here, possibly marking the walk as incomplete
-        }
+        // try {
+        //     await uploadFiles(files_arr);
+        // } catch (error) {
+        //     console.error(`Error uploading files for walk ID ${item.id}:`, error);
+        //     // Consider how to handle file upload errors here, possibly marking the walk as incomplete
+        // }
 
         // Update IndexedDB status after files are uploaded
-        await bulkUpdateDb(db_walks, "walks", update_records);
+        // await bulkUpdateDb(db_walks, "walks", update_records);
     }
 }
 
@@ -140,7 +157,7 @@ export async function syncData() {
     //Cloud Firestore and Cloud Storage both have offline persistence and automatic upload , even while offline without service worker
     //just cause i read some blog about a guy that found this hybrid approach to be the best performing... maybe thats outdated?
     //neeed to find that blog again.
-
+    console.log('called syncData manually...')
     const signIn = async () => {
         try {
             if(!auth.currentUser){
@@ -151,29 +168,50 @@ export async function syncData() {
         }
     };
 
-    setTimeout(async () => {
-        try {
-            if (navigator.onLine) {
-                await signIn();
+    try {
+        if (navigator.onLine) {
+            await signIn();
 
-                const walks_col = await db_walks.walks.toCollection();
-                const count = await walks_col.count();
+            const walks_col = await db_walks.walks.toCollection();
+            const count = await walks_col.count();
 
-                if (count > 0) {
-                    // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
-                    const arr_data = await walks_col.toArray();
-                    await batchPushToFirestore(arr_data);
-                } else {
-                    console.log("No new walks to sync.");
-                }
+            if (count > 0) {
+                // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
+                const arr_data = await walks_col.toArray();
+                await batchPushToFirestore(arr_data);
             } else {
-                console.log("Offline. Skipping sync.");
+                console.log("No new walks to sync.");
             }
-            setTimeout(syncData, 60000)
-        } catch (error) {
-            console.error('An error occurred during the sync interval:', error);
-            setTimeout(syncData, 60000)
+        } else {
+            console.log("Offline. Skipping sync.");
         }
-    }, 60000);  // Check every 60 seconds (60000 ms)
+    } catch (err){
+        console.log(err)
+    }
+
+    // setTimeout(async () => {
+    //     try {
+    //         if (navigator.onLine) {
+    //             await signIn();
+    //
+    //             const walks_col = await db_walks.walks.toCollection();
+    //             const count = await walks_col.count();
+    //
+    //             if (count > 0) {
+    //                 // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
+    //                 const arr_data = await walks_col.toArray();
+    //                 await batchPushToFirestore(arr_data);
+    //             } else {
+    //                 console.log("No new walks to sync.");
+    //             }
+    //         } else {
+    //             console.log("Offline. Skipping sync.");
+    //         }
+    //         setTimeout(syncData, 60000)
+    //     } catch (error) {
+    //         console.error('An error occurred during the sync interval:', error);
+    //         setTimeout(syncData, 60000)
+    //     }
+    // }, 60000);  // Check every 60 seconds (60000 ms)
 
 }

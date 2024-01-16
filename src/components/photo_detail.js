@@ -103,6 +103,7 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                 //stash the existing files to compare later incase adding more files via slide out edit
                 const existing_files_array = [...Object.keys(photo.audios), photo.name];
                 setExistingFiles(existing_files_array);
+                console.log('overwriting audio')
                 for(let audio_i in photo.audios){
                     const audio_name        = doc_id + "_" + audio_i;
                     const update_obj        = {};
@@ -177,13 +178,17 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
             //if existing photo , then dont resave the file to indexdb
             files_to_save.push({"name" : photo_id, "file" : dataUri});
         }
+        console.log(audios)
 
         const audio_names   = {};
         for(let audio_name in audios){
+            console.log(typeof(audios[audio_name]))
+            console.log((audios[audio_name]).size)
             audio_names[audio_name] = "";
             let audio_id = walk_context.data.project_id + "_" + walk_context.data.user_id + "_" + walk_context.data.timestamp + "_" + audio_name;
 
             if(!existingFiles.includes(audio_name)){
+                console.log('adding to files_to_save', audio_name)
                 files_to_save.push({"name" : audio_id, "file" : audios[audio_name]});
             }
         }
@@ -210,6 +215,7 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
         updateContext(walk_context, {"photos": photos});
 
         const update_walk = async () => {
+            console.log('attempting to update walk', files_to_save)
             try {
                 const walk_prom         = await db_walks.walks.put(walk_context.data).then(() => {
                     // console.log(walk_context.data.id, "walk_context already got an id from og add/put, so re-put the walk_context should update new data");
@@ -217,7 +223,7 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                 });
 
                 const bulk_upload_prom  = await db_files.files.bulkPut(files_to_save).then(() => {
-                    // console.log(files_to_save.length , "files saved to ov_files indexDB");
+                    console.log(files_to_save.length , "files saved to ov_files indexDB");
                 }).catch((error) => {
                     console.log('Error saving files', error);
                 });
@@ -350,7 +356,10 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                                                         </a>
                                                     ) : (
                                                         <>
-                                                            <AudioRecorderWithIndexDB stateAudios={audios} stateSetAudios={setAudios} />
+                                                            <AudioRecorderWithIndexDB
+                                                                stateAudios={audios}
+                                                                stateSetAudios={setAudios}
+                                                            />
                                                             <div id="saved_audio">
                                                                 {
                                                                     Object.keys(audios).map((key, idx) => {
@@ -440,7 +449,7 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                                             <Button
                                                 className="save"
                                                 variant="primary"
-                                                as={Link} to="/walk"
+                                                // as={Link} to="/walk"
                                                 onClick={(e) => {
                                                     savePhoto(e);
                                                 }}

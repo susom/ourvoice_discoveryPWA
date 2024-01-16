@@ -101,7 +101,7 @@ function ViewBox(props){
                     [walkId]: true
                 }));
 
-                // syncData(); // start syncing right away
+                syncData(); // start syncing right away
                 console.log("reseting walk and syncing data again",walk );
             }
         } catch (error) {
