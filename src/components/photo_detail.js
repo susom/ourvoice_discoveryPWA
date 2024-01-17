@@ -123,7 +123,7 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
             }
             preparePreview();
         }
-    },[dataUri]);
+    },[dataUri, viewPhotoDetail, walk_context.data.project_id, walk_context.data.user_id, walk_context.data.timestamp, walk_context.data.photos, audios]);
 
     const clearStates = () => {
         setUpVote(false);
@@ -131,7 +131,7 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
         setShowText(false);
         setTextComment(null);
         Object.keys(audios).forEach(key => delete audios[key]);
-        setAudios([]);
+        setAudios(audios);
         setTags([]);
         setRotate(null)
         setSpotGeo({});
@@ -165,8 +165,8 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
     }
 
 
-    const savePhoto = () => {
-        // e.preventDefault();
+    const savePhoto = (e,_this) => {
+        e.preventDefault();
         const files_to_save = [];
 
         const photos        = cloneDeep(walk_context.data.photos);
@@ -241,8 +241,8 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
 
         setTakePhoto(false);
         setCameraLoaded(false);
-        // e.stopPropagation();
-        // return true;
+        e.stopPropagation();
+        return true;
     }
 
     const deletePhoto = (e,_this) => {
@@ -450,7 +450,9 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
                                                 className="save"
                                                 variant="primary"
                                                 // as={Link} to="/walk"
-                                                onClick={savePhoto}
+                                                onClick={(e) => {
+                                                    savePhoto(e);
+                                                }}
                                             >{save_text}</Button>
                                         </Col></>)
                                         : <em>{no_edit_text}</em>

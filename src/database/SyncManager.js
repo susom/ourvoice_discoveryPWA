@@ -8,7 +8,7 @@ import {collection, doc, setDoc, writeBatch} from "firebase/firestore";
 
 async function uploadFiles(file_arr){
     const files = await db_files.files.where('name').anyOf(file_arr).toArray();
-    console.log("upload files", files);
+    console.log(files)
     const promises = files.map((file) => {
         const file_type     = file.name.indexOf("audio") > -1 ? "audio_" : "photo_";
         const temp          = file.name.split("_" + file_type);
