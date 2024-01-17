@@ -31,12 +31,6 @@ export function Consent({Navigate}){
     const walkmap_context = useContext(WalkmapContext);
     const navigate              = useNavigate();
 
-    useEffect(() => {
-        if (!session_context.data.project_id) {
-            navigate('/home');
-        }
-    }, [session_context.data.project_id,navigate]);
-
     const onClickReturnHome = (e) => {
         e.preventDefault();
     };
@@ -49,23 +43,31 @@ export function Consent({Navigate}){
         walk_id                 = walk_id.substring(walk_id.length - 4);
         updateContext(walk_context, {"timestamp" : walk_start, "walk_id" : walk_id, "user_id" : unique_id, "project_id" : session_context.data.project_id, "lang" : session_context.selectedLanguage});
         updateContext(session_context, {"in_walk" : true});
-
         session_context.setPreviewWalk(null);
         //save walk now, in case interrupted
         //after every photo, update the indexDB with new photo data...
         //when finish walk, flag it for service worker to pick it up to push
-        const save_walk = async () => {
-            try {
-                const prom = await db_walks.walks.put(walk_context.data).then(() => {
-                    // console.log("Walk in indexDB, id was added automagically", walk_context.data.id);
-                });
-
-                return prom;
-            } catch (error) {
-                console.log(`Failed to put walk id ${walk_id}: ${error}`);
-            }
-        };
-        save_walk();
+        db_walks.walks.put(walk_context.data)
+            .then(res => {
+                console.log('Walk in indexDB added automatically')
+                navigate("/walk")
+            })
+            .catch(err => {
+                console.log('Error setting walk in indexDB', err)
+            })
+        // const save_walk = async () => {
+        //     try {
+        //         const prom = await db_walks.walks.put(walk_context.data).then(() => {
+        //             // console.log("Walk in indexDB, id was added automagically", walk_context.data.id);
+        //         });
+        //
+        //         return prom;
+        //     } catch (error) {
+        //         console.log(`Failed to put walk id ${walk_id}: ${error}`);
+        //     }
+        // };
+        // save_walk();
+        // navigate("/walk")
     }
 
 
@@ -146,7 +148,7 @@ export function Consent({Navigate}){
                     <Button
                     className="btn btn-primary start_walk"
                     variant="primary"
-                    as={Link} to="/walk"
+                    // as={Link} to="/walk"
                     onClick={startWalk}
                 >{start_btn_text}</Button>
                 </Col>
@@ -154,9 +156,14 @@ export function Consent({Navigate}){
         </Container>
     );
 
-    return (
+    if (!session_context.data.project_id) {
+        navigate('/home');
+    } else {
+        return (
         <ViewBox navTo="/home" onClickReturnHome={onClickReturnHome} >
             {consent_pages[curPage]}
         </ViewBox>
-    );
-};
+        );
+    }
+
+}

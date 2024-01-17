@@ -10,7 +10,7 @@
 // To learn more about the benefits of this model and instructions on how to
 // opt-in, read https://cra.link/PWA
 
-import {syncData} from "./database/SyncManager";
+// import {syncData} from "./database/SyncManager";
 
 const isLocalhost = Boolean(
   window.location.hostname === 'localhost' ||
@@ -49,7 +49,7 @@ export function register(config) {
 
 function fallbackSync() {
   // Sync data every 60 seconds in the main app
-  syncData();
+  // syncData();
 }
 
 function registerValidSW(swUrl, config) {

@@ -13,14 +13,65 @@ export const WalkmapContextProvider = ({children}) => {
     const [data, setData]                   = useState([]);
     const [startTracking, setStartTracking] = useState(false);
     let interval = useRef()
+    let watchID
     const startGeoTracking = () => {
         setStartTracking(true);
     };
 
+    // const watchPosition = () => {
+    //     const start = Date.now();
+    //     console.log('watching position')
+    //     if(hasGeo()){
+    //         watchID = navigator.geolocation.watchPosition(
+    //             (pos) => {
+    //                 let same_geo = false;
+    //                 if(data.length){
+    //                     const lastpos   = data[data.length - 1] ;
+    //                     same_geo  = pos.coords.latitude === lastpos.lat && pos.coords.longitude === lastpos.lng;
+    //                 }
+    //
+    //
+    //                 if(pos.coords.accuracy < 50 && !same_geo){
+    //                     const geo_point = {
+    //                         "accuracy" : pos.coords.accuracy,
+    //                         "altitude" : pos.coords.altitude,
+    //                         "heading" : pos.coords.heading,
+    //                         "lat" : pos.coords.latitude,
+    //                         "lng" : pos.coords.longitude,
+    //                         "speed" : pos.coords.speed,
+    //                         "timestamp" : pos.timestamp,
+    //                     };
+    //                     const end = Date.now();
+    //                     console.log(`saving position successfully, geolocation call execution time: ${end-start} ms `)
+    //                     // console.log("a fresh coordinate", geo_point);
+    //                     setData(prevData => [...prevData, geo_point]);
+    //                     // interval.current = setTimeout(updatePosition, 5000);
+    //                 } else {
+    //                     if(pos.coords.accuracy < 50)
+    //                         setData(prevData => [...prevData, {err:'accuracy of pos not < 50, not saving'}])
+    //                     else
+    //                         setData(prevData => [...prevData, {err:'same geo encountered, skipping'}])
+    //                 }
+    //                 navigator.geolocation.clearWatch(watchID)
+    //                 interval.current = setTimeout(watchPosition, 2000);
+    //             }, (err) => {
+    //                 console.log('error callback triggered in updatePosition', err);
+    //                 setData(prevData => [...prevData, {err:err}])
+    //                 navigator.geolocation.clearWatch(watchID)
+    //                 interval.current = setTimeout(watchPosition, 2000);
+    //             }, {maximumAge: 0})
+    //
+    //     } else {
+    //         console.log("geodata api not available");
+    //         setData(prevData => [...prevData, {err:"geodata api not available"}])
+    //         interval.current = setTimeout(watchPosition, 2000);
+    //     }
+    // }
+
     const updatePosition = () => {
+        const start = Date.now();
         console.log('updatePositionCalled')
         if(hasGeo()){
-
             navigator.geolocation.getCurrentPosition((pos) => {
                 let same_geo = false;
                 if(data.length){
@@ -38,10 +89,11 @@ export const WalkmapContextProvider = ({children}) => {
                         "speed" : pos.coords.speed,
                         "timestamp" : pos.timestamp,
                     };
-                    console.log('saving position successfully')
+                    const end = Date.now();
+                    console.log(`saving position successfully, geolocation call execution time: ${end-start} ms `)
                     // console.log("a fresh coordinate", geo_point);
                     setData(prevData => [...prevData, geo_point]);
-                    interval.current = setTimeout(updatePosition, 5000);
+                    interval.current = setTimeout(updatePosition, 2000);
                 } else {
                     if(pos.coords.accuracy < 50)
                         setData(prevData => [...prevData, {err:'accuracy of pos not < 50, not saving'}])
@@ -52,13 +104,14 @@ export const WalkmapContextProvider = ({children}) => {
             }, (err) => {
                 console.log('error callback triggered in updatePosition', err);
                 setData(prevData => [...prevData, {err:err}])
-                interval.current = setTimeout(updatePosition, 5000);
-            },{
-                enableHighAccuracy : true
-            });
+
+                interval.current = setTimeout(updatePosition, 2000);
+            }, {maximumAge: 0, timeout: 10000, enableHighAccuracy : true});
+
         }else{
             console.log("geodata api not available");
-            interval.current = setTimeout(updatePosition, 5000);
+            setData(prevData => [...prevData, {err:"geodata api not available"}])
+            interval.current = setTimeout(updatePosition, 2000);
         }
     };
     const clearPolling = () => {
@@ -69,9 +122,10 @@ export const WalkmapContextProvider = ({children}) => {
 
     const startPolling = () => {
         console.log('starting poll')
-        console.log(interval.current)
+        // watchPosition()
+        // console.log(interval.current)
         if(!interval.current)
-            interval.current = setTimeout(updatePosition, 5000);
+            interval.current = setTimeout(updatePosition, 2000);
     }
 
     useEffect(() => {
