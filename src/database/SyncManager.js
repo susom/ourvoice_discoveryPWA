@@ -21,7 +21,10 @@ async function uploadFiles(file_arr){
 
         let fileToUpload    = file.file;
         let isImage         = false;
-        if (isBase64(fileToUpload)) {
+
+        if (file_type === "audio_") {
+            fileToUpload = new Blob([fileToUpload.buffer], { type: fileToUpload.type });
+        } else if (isBase64(fileToUpload)) {
             isImage = true;
             const binaryString = atob(fileToUpload.split(",")[1]);
             const byteArray = new Uint8Array(binaryString.length);

@@ -270,10 +270,14 @@ function PhotoDetail({setDataUri, dataUri, viewPhotoDetail, setViewPhotoDetail})
             //if not playing then play, and add class "playing"
             if(audios.hasOwnProperty(audio_name)){
                 e.target.classList.add('playing');
-                const blob  = audios[audio_name];
-                const url   = URL.createObjectURL(blob);
+
+                const audioData = audios[audio_name];
+                const blob = new Blob([audioData.buffer], { type: audioData.type }); // Create Blob from ArrayBuffer and MIME type
+                const url = URL.createObjectURL(blob);
+
                 const audio = document.createElement('audio');
-                audio.src   = url;
+                audio.src = url;
+
                 audio.setAttribute('id', 'temporary_audioplayer');
                 audio.addEventListener("ended", () => {
                     e.target.classList.remove('playing');

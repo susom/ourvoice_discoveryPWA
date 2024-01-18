@@ -144,7 +144,8 @@ function SlideOut(props){
         const currentWalkAudios = walkAudiosRef.current;
 
         if (audioElement && currentWalkAudios.hasOwnProperty(audio_name)) {
-            const blob = currentWalkAudios[audio_name];
+            const audioData = currentWalkAudios[audio_name];
+            const blob = new Blob([audioData.buffer], { type: audioData.type }); // Create Blob from ArrayBuffer and MIME type
 
             if (blob instanceof Blob) {
                 const url = URL.createObjectURL(blob);
