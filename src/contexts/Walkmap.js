@@ -110,7 +110,11 @@ export const WalkmapContextProvider = ({children}) => {
             }, (err) => {
                 handleError(`Error Callback in getCurrentPosition called, ${err.message}`)
                 interval.current = setTimeout(updatePosition, 2000);
-            }, {maximumAge: 0, timeout: 12000, enableHighAccuracy : true});
+            }, {
+                    maximumAge: 0,
+                    timeout: 30000,
+                    enableHighAccuracy : true
+            });
         }else{
             handleError('Navigator Geolocation not enabled')
             interval.current = setTimeout(updatePosition, 2000);
