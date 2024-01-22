@@ -112,7 +112,7 @@ export const WalkmapContextProvider = ({children}) => {
                 interval.current = setTimeout(updatePosition, 2000);
             }, {
                     maximumAge: 0,
-                    timeout: 30000,
+                    timeout: 120000,
                     enableHighAccuracy : true
             });
         }else{
