@@ -85,7 +85,7 @@ export const WalkmapContextProvider = ({children}) => {
                     same_geo  = pos.coords.latitude === lastpos.lat && pos.coords.longitude === lastpos.lng;
                 }
 
-                if(pos.coords.accuracy < 50 && !same_geo){
+                if(!same_geo){
                     const geo_point = {
                         "accuracy" : pos.coords.accuracy,
                         "altitude" : pos.coords.altitude,
