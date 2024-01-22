@@ -94,19 +94,12 @@ export const WalkmapContextProvider = ({children}) => {
                     // console.log("a fresh coordinate", geo_point);
                     setData(prevData => [...prevData, geo_point]);
 
-                } 
+                }
                 interval.current = setTimeout(updatePosition, 2000);
-
             }, (err) => {
-                console.log('error callback triggered in updatePosition', err);
-                setData(prevData => [...prevData, {err:err}])
-
                 interval.current = setTimeout(updatePosition, 2000);
             }, {maximumAge: 0, timeout: 10000, enableHighAccuracy : true});
-
         }else{
-            console.log("geodata api not available");
-            setData(prevData => [...prevData, {err:"geodata api not available"}])
             interval.current = setTimeout(updatePosition, 2000);
         }
     };
