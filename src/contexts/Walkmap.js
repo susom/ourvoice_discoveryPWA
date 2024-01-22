@@ -1,6 +1,6 @@
 import {createContext, useState, useContext, useEffect, useRef} from 'react';
 import {SessionContext} from "../contexts/Session";
-import {hasGeo} from "../components/util";
+import {hasGeo, logError} from "../components/util";
 
 export const WalkmapContext = createContext({
     data : {},
@@ -13,10 +13,16 @@ export const WalkmapContextProvider = ({children}) => {
     const [data, setData]                   = useState([]);
     const [startTracking, setStartTracking] = useState(false);
     let interval = useRef()
-    let watchID
+    // let watchID
     const startGeoTracking = () => {
         setStartTracking(true);
     };
+
+    const handleError = async (msg) => {
+        const now = new Date().toLocaleString()
+        await logError(now, session_context?.data?.project_id, null, 'Position error', msg )
+    }
+
 
     // const watchPosition = () => {
     //     const start = Date.now();
@@ -94,12 +100,19 @@ export const WalkmapContextProvider = ({children}) => {
                     // console.log("a fresh coordinate", geo_point);
                     setData(prevData => [...prevData, geo_point]);
 
+                } else {
+                    if(pos.coords.accuracy >= 50)
+                        handleError('Accuracy is greater than 50, skipping')
+                    else
+                        handleError('Same Geo point encountered, skipping')
                 }
                 interval.current = setTimeout(updatePosition, 2000);
             }, (err) => {
+                handleError(`Error Callback in getCurrentPosition called, ${err.message}`)
                 interval.current = setTimeout(updatePosition, 2000);
-            }, {maximumAge: 0, timeout: 10000, enableHighAccuracy : true});
+            }, {maximumAge: 0, timeout: 12000, enableHighAccuracy : true});
         }else{
+            handleError('Navigator Geolocation not enabled')
             interval.current = setTimeout(updatePosition, 2000);
         }
     };

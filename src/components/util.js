@@ -22,8 +22,9 @@ export async function putDb(db_table, context_data) {
 }
 
 
-export async function logError(projectId, walkId, type, message) {
+export async function logError(time, projectId, walkId, type, message) {
     const logData = {
+        date: time,
         project_id: projectId,
         walk_id: walkId,
         type: type,
