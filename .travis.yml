@@ -12,11 +12,8 @@ env:
 cache:
   directories:
     - "$HOME/google-cloud-sdk/"
-    - "/opt/pyenv/versions/3.8.10"
-
 before_install:
   - openssl aes-256-cbc -K $encrypted_fce61e3da44a_key -iv $encrypted_fce61e3da44a_iv -in travis-deploy-gcp-key.json.enc -out travis-deploy-gcp-key.json -d
-  - if [ ! -d "/opt/pyenv/versions/3.8.10" ]; then pyenv install 3.8.10; pyenv global 3.8.10; fi
   - gcloud auth activate-service-account --key-file=travis-deploy-gcp-key.json
   - gcloud auth configure-docker        # enable "docker push" to gcr
   - gcloud config set project "$PROJECT"
