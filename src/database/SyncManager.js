@@ -161,7 +161,6 @@ export async function syncData() {
     };
 
     setTimeout(async () => {
-        console.log("in syncData timeout loop");
         try {
             if (navigator.onLine) {
                 await signIn();
@@ -184,6 +183,6 @@ export async function syncData() {
             console.error('An error occurred during the sync interval:', error);
             setTimeout(syncData, 30000)
         }
-    }, 30000);  // Check every 60 seconds (60000 ms)
+    }, 30000);
 
 }
