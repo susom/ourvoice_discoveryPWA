@@ -9,7 +9,7 @@ node_js:
 env:
   global:
     - CLOUDSDK_CORE_DISABLE_PROMPTS=1   # prevent gcloud from prompting
-    - CLOUDSDK_PYTHON=/opt/pyenv/versions/3.11.5/bin/python3.11
+    - CLOUDSDK_PYTHON=/opt/pyenv/versions/3.10.0/bin/python3.10
 
 cache:
   directories:
@@ -21,8 +21,8 @@ before_install:
 #  - if [ ! -d "/opt/pyenv/versions/3.11.5" ]; then pyenv install 3.11.5; fi
 #  - pyenv update
   - pyenv install --list
-  - pyenv install -f 3.11.5
-  - pyenv global 3.11.5
+  - pyenv install -f 3.10.0
+  - pyenv global 3.10.0
   - gcloud auth activate-service-account --key-file=travis-deploy-gcp-key.json
   - gcloud auth configure-docker        # enable "docker push" to gcr
   - gcloud config set project "$PROJECT"
