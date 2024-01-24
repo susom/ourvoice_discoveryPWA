@@ -137,17 +137,6 @@ async function batchPushToFirestore(walk_data) {
             await updateWalkStatus(item, "ERROR");
             // Implement a mechanism to handle individual walk failures here
         }
-
-        // Upload files
-        // try {
-        //     await uploadFiles(files_arr);
-        // } catch (error) {
-        //     console.error(`Error uploading files for walk ID ${item.id}:`, error);
-        //     // Consider how to handle file upload errors here, possibly marking the walk as incomplete
-        // }
-
-        // Update IndexedDB status after files are uploaded
-        // await bulkUpdateDb(db_walks, "walks", update_records);
     }
 }
 
@@ -160,7 +149,7 @@ export async function syncData() {
     //Cloud Firestore and Cloud Storage both have offline persistence and automatic upload , even while offline without service worker
     //just cause i read some blog about a guy that found this hybrid approach to be the best performing... maybe thats outdated?
     //neeed to find that blog again.
-    console.log('called syncData manually...')
+
     const signIn = async () => {
         try {
             if(!auth.currentUser){
@@ -171,28 +160,8 @@ export async function syncData() {
         }
     };
 
-    // try {
-    //     if (navigator.onLine) {
-    //         await signIn();
-    //
-    //         const walks_col = await db_walks.walks.toCollection();
-    //         const count = await walks_col.count();
-    //
-    //         if (count > 0) {
-    //             // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
-    //             const arr_data = await walks_col.toArray();
-    //             await batchPushToFirestore(arr_data);
-    //         } else {
-    //             console.log("No new walks to sync.");
-    //         }
-    //     } else {
-    //         console.log("Offline. Skipping sync.");
-    //     }
-    // } catch (err){
-    //     console.log(err)
-    // }
-
     setTimeout(async () => {
+        console.log("in syncData timeout loop");
         try {
             if (navigator.onLine) {
                 await signIn();
