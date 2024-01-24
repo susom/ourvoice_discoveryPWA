@@ -9,21 +9,24 @@ node_js:
 env:
   global:
     - CLOUDSDK_CORE_DISABLE_PROMPTS=1   # prevent gcloud from prompting
-    - CLOUDSDK_PYTHON=/opt/pyenv/versions/3.8.10/bin/python3.8
+#    - CLOUDSDK_PYTHON=/opt/pyenv/versions/3.8.10/bin/python3.8
 
 cache:
   directories:
     - "$HOME/google-cloud-sdk/"
-    - "/opt/pyenv/versions/3.8.10"
+    - "/opt/pyenv/versions/3.11.5"
 
 before_install:
   - openssl aes-256-cbc -K $encrypted_fce61e3da44a_key -iv $encrypted_fce61e3da44a_iv -in travis-deploy-gcp-key.json.enc -out travis-deploy-gcp-key.json -d
-  - if [ ! -d "/opt/pyenv/versions/3.8.10" ]; then pyenv install 3.8.10; fi
+  #  - if [ ! -d "/opt/pyenv/versions/3.11.5" ]; then pyenv install 3.11.5; fi
+  #  - pyenv update
+  #  - pyenv install --list
+  - pyenv install -f 3.8.10
   - pyenv global 3.8.10
   - gcloud auth activate-service-account --key-file=travis-deploy-gcp-key.json
   - gcloud auth configure-docker        # enable "docker push" to gcr
   - gcloud config set project "$PROJECT"
-  
+
 script:
   - gcloud version || true
   - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
