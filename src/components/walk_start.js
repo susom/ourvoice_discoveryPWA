@@ -195,10 +195,10 @@ function WalkStart(props) {
                                     >{done_walk_text}</Button>
                                 </Col>
                             </Row>
-                             <div style={{height:'200px', overflow:'scroll'}}>
-                                 <p>Coordinates</p>
-                                {debug.reverse()}
-                            </div>
+                            {/* <div style={{height:'200px', overflow:'scroll'}}>*/}
+                            {/*     <p>Coordinates</p>*/}
+                            {/*    {debug.reverse()}*/}
+                            {/*</div>*/}
                         </Container>
                     </Col>
                 </Row>

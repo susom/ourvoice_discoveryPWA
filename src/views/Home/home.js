@@ -379,7 +379,7 @@ export function Home(){
         });
 
         //KICK OFF THE POLLING THAT PUSHES INDEXDB TO FIREBASE
-        // syncData();
+        syncData();
 
     }, []);
 

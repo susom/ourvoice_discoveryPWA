@@ -171,50 +171,50 @@ export async function syncData() {
         }
     };
 
-    try {
-        if (navigator.onLine) {
-            await signIn();
-
-            const walks_col = await db_walks.walks.toCollection();
-            const count = await walks_col.count();
-
-            if (count > 0) {
-                // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
-                const arr_data = await walks_col.toArray();
-                await batchPushToFirestore(arr_data);
-            } else {
-                console.log("No new walks to sync.");
-            }
-        } else {
-            console.log("Offline. Skipping sync.");
-        }
-    } catch (err){
-        console.log(err)
-    }
-
-    // setTimeout(async () => {
-    //     try {
-    //         if (navigator.onLine) {
-    //             await signIn();
+    // try {
+    //     if (navigator.onLine) {
+    //         await signIn();
     //
-    //             const walks_col = await db_walks.walks.toCollection();
-    //             const count = await walks_col.count();
+    //         const walks_col = await db_walks.walks.toCollection();
+    //         const count = await walks_col.count();
     //
-    //             if (count > 0) {
-    //                 // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
-    //                 const arr_data = await walks_col.toArray();
-    //                 await batchPushToFirestore(arr_data);
-    //             } else {
-    //                 console.log("No new walks to sync.");
-    //             }
+    //         if (count > 0) {
+    //             // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
+    //             const arr_data = await walks_col.toArray();
+    //             await batchPushToFirestore(arr_data);
     //         } else {
-    //             console.log("Offline. Skipping sync.");
+    //             console.log("No new walks to sync.");
     //         }
-    //         setTimeout(syncData, 60000)
-    //     } catch (error) {
-    //         console.error('An error occurred during the sync interval:', error);
-    //         setTimeout(syncData, 60000)
+    //     } else {
+    //         console.log("Offline. Skipping sync.");
     //     }
-    // }, 60000);  // Check every 60 seconds (60000 ms)
+    // } catch (err){
+    //     console.log(err)
+    // }
+
+    setTimeout(async () => {
+        try {
+            if (navigator.onLine) {
+                await signIn();
+
+                const walks_col = await db_walks.walks.toCollection();
+                const count = await walks_col.count();
+
+                if (count > 0) {
+                    // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
+                    const arr_data = await walks_col.toArray();
+                    await batchPushToFirestore(arr_data);
+                } else {
+                    console.log("No new walks to sync.");
+                }
+            } else {
+                console.log("Offline. Skipping sync.");
+            }
+            setTimeout(syncData, 60000)
+        } catch (error) {
+            console.error('An error occurred during the sync interval:', error);
+            setTimeout(syncData, 60000)
+        }
+    }, 60000);  // Check every 60 seconds (60000 ms)
 
 }
