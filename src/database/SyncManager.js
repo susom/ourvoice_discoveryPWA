@@ -85,11 +85,11 @@ async function batchPushToFirestore(walk_data) {
     // return; //Remember to delete after testing.
 
     for (const item of filteredWalkData) {
-        if(item.status === "IN_PROGRESS") //If loop attempts uploading a current walk, continue
-            continue
+        // if(item.status === "IN_PROGRESS") //If loop attempts uploading a current walk, continue
+        //     continue
 
         try {
-            // await updateWalkStatus(item, "IN_PROGRESS");
+            await updateWalkStatus(item, "IN_PROGRESS");
 
             // Prepare the document data
             const doc_id = item.project_id + "_" + item.user_id + "_" + item.timestamp;
