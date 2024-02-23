@@ -41,13 +41,12 @@ function SlideOut(props){
     const [walkAudios, setWalkAudios]       = useState({});
     const [audioPlaying, setAudioPlaying]   = useState(null);
 
-    const [summProjectID, setSummProjectID] = useState(null);
-    const [summWalkID, setSummWalkID]       = useState(null);
-    const [walkSumm, setWalkSumm]           = useState([]);
+    const [summProjectID, setSummProjectID]     = useState(null);
+    const [summWalkID, setSummWalkID]           = useState(null);
+    const [walkSumm, setWalkSumm]       = useState([]);
 
     const audioRef      = useRef(null);
     const walkAudiosRef = useRef({});
-
 
     useEffect(() => {
         walkAudiosRef.current = walkAudios;
@@ -116,7 +115,10 @@ function SlideOut(props){
                             return { ...acc, ...item.audioPreloads };
                         }, {});
 
-                        console.log("summ_preview from uploadsumm", summ_preview);
+
+                        setSummProjectID(walk_preview.project_id);
+                        setSummWalkID(walk_preview.walk_id);
+
                         setWalkAudios(allAudioPreloads);
                     });
                 });
@@ -131,7 +133,9 @@ function SlideOut(props){
                         return { ...acc, ...item.audioPreloads };
                     }, {});
 
-                    console.log("summ_preview current walk", summ_preview);
+                    setSummProjectID(walk.project_id);
+                    setSummWalkID(walk.walk_id);
+
                     setWalkAudios(allAudioPreloads);
                 });
             }
