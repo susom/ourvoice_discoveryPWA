@@ -190,6 +190,7 @@ function SlideOut(props){
         const photoFolder = zip.folder("photos");
         const audioFolder = zip.folder("audios"); // Create a folder for audios
 
+        // console.log("gather photos for zip");
         // Loop over walkSumm and gather photos
         for (const item of walkSumm) {
             const base64Data = item.photo_base64.split(",")[1];
@@ -197,17 +198,23 @@ function SlideOut(props){
             photoFolder.file(`photo_${item.photo_id}.jpg`, photoBlob, { binary: true });
         }
 
+        // console.log("gather audios for zip");
         // Loop over walkAudios and gather audios
-        for (const [audioName, audioBlob] of Object.entries(walkAudios)) {
-            audioFolder.file(`${audioName}`, audioBlob, { binary: true });
+        for (const [audioName, audioObject] of Object.entries(walkAudios)) {
+            // Access the buffer property of the audioObject
+            const audioBuffer = audioObject.buffer;
+            const audioBlob = new Blob([audioBuffer], { type: audioObject.type }); // Use the provided type
+            audioFolder.file(`${audioName}`, audioBlob);
         }
 
+        // console.log("gather walk json for zip");
         // Prepare walk metadata as JSON
         const walkMetadata = await db_walks.walks.get(session_context.previewWalk);
         const metadataStr = JSON.stringify(walkMetadata, null, 2); // Convert to a formatted JSON string
         const metadataBlob = new Blob([metadataStr], { type: "application/json" });
         zip.file("walk_metadata.json", metadataBlob); // Add metadata JSON to the zip
 
+        // console.log("generate zip");
         // Generate zip and trigger download
         zip.generateAsync({ type: "blob" }).then(blob => {
             saveAs(blob, "photos_and_audios.zip");
@@ -243,7 +250,7 @@ function SlideOut(props){
                             })
                     }
 
-                    { walkSumm.length ? <Button onClick={downloadPhotos}>Download All Photos & Audios</Button> : "" }
+                    {  (!session_context.data.in_walk && session_context.previewWalk)  ? <Button onClick={downloadPhotos}>Download All Photos & Audios</Button> : "" }
 
                     <audio ref={audioRef} hidden></audio>
                 </div>
