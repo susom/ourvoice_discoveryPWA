@@ -3,26 +3,28 @@ import { auth } from "../database/Firebase";
 import { signInAnonymously } from "firebase/auth";
 
 const useAnonymousSignIn = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
         const signIn = async () => {
             try {
                 if(!auth.currentUser){
-                    await signInAnonymously(auth);
-                    // console.log("anonymous sign in!!");
-                    setIsAuthenticated(true);
+                    const userCredential = await signInAnonymously(auth);
+                    const user = userCredential.user;
+                    console.log("userCredential", userCredential);
+                    setUserId(user.uid);
                 }
             } catch (error) {
                 console.error("Error signing in anonymously:", error);
-                setIsAuthenticated(false);
+                setUserId(null);
             }
         };
 
         signIn();
     }, []);
 
-    return isAuthenticated;
+    console.log("anonymous USERID ", userId);
+    return userId;
 };
 
 

@@ -35,7 +35,7 @@ async function uploadFiles(file_arr){
         }
 
         return new Promise((resolve, reject) => {
-            const which_storage = isImage ? storageRef_2 : storageRef;
+            const which_storage = storageRef_2;
             const uploadTask    = uploadBytesResumable(which_storage, fileToUpload);
             uploadTask.on('state_changed',
                 (snapshot) => {
@@ -140,9 +140,6 @@ async function batchPushToFirestore(walk_data) {
     }
 }
 
-
-
-
 export async function syncData() {
     // Set up timer to periodically check IndexedDB
 
@@ -150,39 +147,40 @@ export async function syncData() {
     //just cause i read some blog about a guy that found this hybrid approach to be the best performing... maybe thats outdated?
     //neeed to find that blog again.
 
-    const signIn = async () => {
-        try {
-            if(!auth.currentUser){
-                await signInAnonymously(auth);
+    const signInIfNeeded = async () => {
+        if (!auth.currentUser && navigator.onLine) {
+            try {
+                const userCredential = await signInAnonymously(auth);
+                console.log("Anonymous user signed in:", userCredential.user.uid);
+            } catch (error) {
+                console.error("Error signing in anonymously:", error);
             }
-        } catch (error) {
-            console.error("Error signing in anonymously:", error);
         }
     };
 
-    setTimeout(async () => {
-        try {
-            if (navigator.onLine) {
-                await signIn();
+    try {
+        // Sign in anonymously if needed
+        await signInIfNeeded();
 
-                const walks_col = await db_walks.walks.toCollection();
-                const count = await walks_col.count();
+        // Continue with sync process if online
+        // if (navigator.onLine) {
+            const walks_col = await db_walks.walks.toCollection();
+            const count = await walks_col.count();
 
-                if (count > 0) {
-                    // console.log(`Syncing ${count} walk(s) from IndexedDB to Firestore`);
-                    const arr_data = await walks_col.toArray();
-                    await batchPushToFirestore(arr_data);
-                } else {
-                    console.log("No new walks to sync.");
-                }
+            if (count > 0) {
+                const arr_data = await walks_col.toArray();
+                await batchPushToFirestore(arr_data);
             } else {
-                console.log("Offline. Skipping sync.");
+                console.log("No new walks to sync.");
             }
-            setTimeout(syncData, 30000)
-        } catch (error) {
-            console.error('An error occurred during the sync interval:', error);
-            setTimeout(syncData, 30000)
-        }
-    }, 30000);
+        // } else {
+        //     console.log("Offline. Skipping sync.");
+        // }
+    } catch (error) {
+        console.error('An error occurred during the sync interval:', error);
+    }
 
+    // Schedule next sync
+    setTimeout(syncData, 30000);
 }
+
